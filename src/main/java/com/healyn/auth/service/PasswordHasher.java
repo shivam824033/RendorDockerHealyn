@@ -14,8 +14,8 @@ public class PasswordHasher {
     private static final int SALT_BYTES = 16;
     private static final int HASH_LENGTH = 32;
     private static final int PARALLELISM = 1;
-    private static final int MEMORY_KB = 64 * 1024;
-    private static final int ITERATIONS = 3;
+    private static final int MEMORY_KB = 4 * 1024;
+    private static final int ITERATIONS = 2;
 
     private final SecureRandom random = new SecureRandom();
     private final Argon2PasswordEncoder encoder =
