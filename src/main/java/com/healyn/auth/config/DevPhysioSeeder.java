@@ -23,7 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
  * (CLAUDE.md §3).
  */
 @Component
-@Profile({"local", "dev"})
+//@Profile({"local", "dev"})  for demo purposes, we want this to run in all profiles, but in production the email and password should be blank to avoid seeding an account
 public class DevPhysioSeeder implements ApplicationRunner {
 
     private static final Logger log = LoggerFactory.getLogger(DevPhysioSeeder.class);
@@ -36,8 +36,8 @@ public class DevPhysioSeeder implements ApplicationRunner {
     public DevPhysioSeeder(
             AccountRepository accounts,
             PasswordHasher passwordHasher,
-            @Value("${healyn.dev.physio.email:physio@healyn.local}") String email,
-            @Value("${healyn.dev.physio.password:Physio!Dev123}") String password) {
+            @Value("${healyn.dev.physio.email:physio@healyn.com}") String email,
+            @Value("${healyn.dev.physio.password:Physio@123456}") String password) {
         this.accounts = accounts;
         this.passwordHasher = passwordHasher;
         this.email = email == null ? null : email.toLowerCase();
