@@ -7,7 +7,7 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 @Component
-@Profile({"local", "test"})
+//@Profile({"local", "test"})
 public class LoggingOtpSender implements OtpSender {
 
     private static final Logger log = LoggerFactory.getLogger(LoggingOtpSender.class);
