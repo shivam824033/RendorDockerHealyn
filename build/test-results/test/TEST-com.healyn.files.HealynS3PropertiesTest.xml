@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.healyn.files.HealynS3PropertiesTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-06-06T05:43:10" hostname="LAPTOP-7J416IAG" time="0.003">
+  <properties/>
+  <testcase name="presignEndpoint_falls_back_to_endpoint_when_public_is_null_or_blank()" classname="com.healyn.files.HealynS3PropertiesTest" time="0.001"/>
+  <testcase name="presignEndpoint_uses_public_endpoint_when_set()" classname="com.healyn.files.HealynS3PropertiesTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.healyn.db.FlywayMigrationTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2026-06-06T05:42:34" hostname="LAPTOP-7J416IAG" time="1.463">
+  <properties/>
+  <testcase name="all_migrations_apply_to_fresh_database()" classname="com.healyn.db.FlywayMigrationTest" time="1.463"/>
+  <system-out><![CDATA[2026-06-06T11:12:32.252+05:30 WARN  [,,] i.l.core.protocol.ConnectionWatchdog - Cannot reconnect to [localhost/<unresolved>:54669]: Connection refused: getsockopt: localhost/127.0.0.1:54669
+2026-06-06T11:12:35.908+05:30 WARN  [,,] i.l.core.protocol.ConnectionWatchdog - Cannot reconnect to [localhost/<unresolved>:54696]: Connection refused: getsockopt: localhost/127.0.0.1:54696
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

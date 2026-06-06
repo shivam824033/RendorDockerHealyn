@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.healyn.notifications.NotificationsConfigTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-06-06T05:43:29" hostname="LAPTOP-7J416IAG" time="0.005">
+  <properties/>
+  <testcase name="blank_credentials_fails_fast_outside_local_and_test()" classname="com.healyn.notifications.NotificationsConfigTest" time="0.001"/>
+  <testcase name="blank_credentials_fails_fast_with_no_active_profile()" classname="com.healyn.notifications.NotificationsConfigTest" time="0.001"/>
+  <testcase name="null_credentials_uses_logging_sender_in_test()" classname="com.healyn.notifications.NotificationsConfigTest" time="0.001"/>
+  <testcase name="blank_credentials_uses_logging_sender_in_local()" classname="com.healyn.notifications.NotificationsConfigTest" time="0.001"/>
+  <system-out><![CDATA[2026-06-06T11:13:29.801+05:30 INFO  [,,] c.h.n.config.NotificationsConfig - FCM credentials-path not configured — using logging sender (no push delivery).
+2026-06-06T11:13:29.802+05:30 INFO  [,,] c.h.n.config.NotificationsConfig - FCM credentials-path not configured — using logging sender (no push delivery).
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

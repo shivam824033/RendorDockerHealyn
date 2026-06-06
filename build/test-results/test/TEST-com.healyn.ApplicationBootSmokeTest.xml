@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.healyn.ApplicationBootSmokeTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2026-06-06T05:42:04" hostname="LAPTOP-7J416IAG" time="0.009">
+  <properties/>
+  <testcase name="contextLoads()" classname="com.healyn.ApplicationBootSmokeTest" time="0.009"/>
+  <system-out><![CDATA[
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v3.3.5)
+
+2026-06-06T11:11:59.057+05:30 INFO  [,,] com.healyn.ApplicationBootSmokeTest - Starting ApplicationBootSmokeTest using Java 21.0.10 with PID 16088 (started by Shivam jaiswal in C:\CloudeCode\Healyn\backend)
+2026-06-06T11:11:59.057+05:30 INFO  [,,] com.healyn.ApplicationBootSmokeTest - The following 1 profile is active: "test"
+2026-06-06T11:12:02.665+05:30 WARN  [,,] c.healyn.auth.service.JwtKeyProvider - JWT keys not configured — generating ephemeral RSA-2048 keypair (active profile only).
+2026-06-06T11:12:03.082+05:30 INFO  [,,] c.h.n.config.NotificationsConfig - FCM credentials-path not configured — using logging sender (no push delivery).
+2026-06-06T11:12:04.290+05:30 INFO  [,,] com.healyn.ApplicationBootSmokeTest - Started ApplicationBootSmokeTest in 5.324 seconds (process running for 47.973)
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

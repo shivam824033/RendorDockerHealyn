@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.healyn.notifications.FirebaseFcmSenderTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-06-06T05:43:19" hostname="LAPTOP-7J416IAG" time="0.218">
+  <properties/>
+  <testcase name="server_unavailable_maps_to_transient_error()" classname="com.healyn.notifications.FirebaseFcmSenderTest" time="0.195"/>
+  <testcase name="unregistered_token_maps_to_token_invalid()" classname="com.healyn.notifications.FirebaseFcmSenderTest" time="0.002"/>
+  <testcase name="classify_covers_each_error_code()" classname="com.healyn.notifications.FirebaseFcmSenderTest" time="0.0"/>
+  <testcase name="successful_send_is_delivered()" classname="com.healyn.notifications.FirebaseFcmSenderTest" time="0.002"/>
+  <system-out><![CDATA[2026-06-06T11:13:20.193+05:30 WARN  [,,] c.h.n.adapter.FirebaseFcmSender - FCM transient failure kind=BOOKING_REQUESTED errorCode=UNAVAILABLE
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.healyn.auth.service.OtpServiceTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-06-06T05:42:19" hostname="LAPTOP-7J416IAG" time="0.036">
+  <properties/>
+  <testcase name="verify_after_max_attempts_throws_exhausted()" classname="com.healyn.auth.service.OtpServiceTest" time="0.014"/>
+  <testcase name="issue_at_rate_limit_throws_429()" classname="com.healyn.auth.service.OtpServiceTest" time="0.003"/>
+  <testcase name="verify_with_wrong_code_records_attempt_and_throws()" classname="com.healyn.auth.service.OtpServiceTest" time="0.007"/>
+  <testcase name="issue_below_rate_limit_succeeds_and_sends_code()" classname="com.healyn.auth.service.OtpServiceTest" time="0.003"/>
+  <testcase name="verify_with_correct_code_consumes_challenge()" classname="com.healyn.auth.service.OtpServiceTest" time="0.003"/>
+  <testcase name="verify_with_wrong_purpose_throws()" classname="com.healyn.auth.service.OtpServiceTest" time="0.003"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

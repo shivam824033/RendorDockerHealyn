@@ -1,0 +1,14 @@
+spring:
+  datasource:
+    url: ${DATABASE_URL}
+    username: ${HEALYN_DB_USER}
+    password: ${HEALYN_DB_PASSWORD}
+
+  data:
+    redis:
+      host: ${HEALYN_REDIS_HOST}
+      port: ${HEALYN_REDIS_PORT}
+      password: ${HEALYN_REDIS_PASSWORD}
+
+server:
+  port: ${PORT:8080}

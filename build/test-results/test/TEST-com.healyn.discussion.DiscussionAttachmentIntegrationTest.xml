@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.healyn.discussion.DiscussionAttachmentIntegrationTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-06-06T05:42:44" hostname="LAPTOP-7J416IAG" time="2.703">
+  <properties/>
+  <testcase name="attachment_only_message_round_trips_with_attachment_view()" classname="com.healyn.discussion.DiscussionAttachmentIntegrationTest" time="0.714"/>
+  <testcase name="deleting_a_referenced_file_is_conflict()" classname="com.healyn.discussion.DiscussionAttachmentIntegrationTest" time="0.474"/>
+  <testcase name="attachment_from_a_different_patient_is_forbidden()" classname="com.healyn.discussion.DiscussionAttachmentIntegrationTest" time="0.735"/>
+  <testcase name="pending_upload_attachment_is_rejected_as_not_ready()" classname="com.healyn.discussion.DiscussionAttachmentIntegrationTest" time="0.364"/>
+  <testcase name="attachment_only_without_files_is_unprocessable()" classname="com.healyn.discussion.DiscussionAttachmentIntegrationTest" time="0.413"/>
+  <system-out><![CDATA[
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v3.3.5)
+
+2026-06-06T11:12:40.491+05:30 INFO  [,,] c.h.d.DiscussionAttachmentIntegrationTest - Starting DiscussionAttachmentIntegrationTest using Java 21.0.10 with PID 16088 (started by Shivam jaiswal in C:\CloudeCode\Healyn\backend)
+2026-06-06T11:12:40.491+05:30 INFO  [,,] c.h.d.DiscussionAttachmentIntegrationTest - The following 1 profile is active: "test"
+2026-06-06T11:12:40.720+05:30 WARN  [,,] i.l.core.protocol.ConnectionWatchdog - Cannot reconnect to [localhost/<unresolved>:54722]: Connection refused: getsockopt: localhost/127.0.0.1:54722
+2026-06-06T11:12:43.301+05:30 WARN  [,,] c.healyn.auth.service.JwtKeyProvider - JWT keys not configured — generating ephemeral RSA-2048 keypair (active profile only).
+2026-06-06T11:12:43.642+05:30 INFO  [,,] c.h.n.config.NotificationsConfig - FCM credentials-path not configured — using logging sender (no push delivery).
+2026-06-06T11:12:44.428+05:30 INFO  [,,] c.h.d.DiscussionAttachmentIntegrationTest - Started DiscussionAttachmentIntegrationTest in 3.975 seconds (process running for 88.111)
+2026-06-06T11:12:47.752+05:30 WARN  [,,] i.l.core.protocol.ConnectionWatchdog - Cannot reconnect to [localhost/<unresolved>:54762]: Connection closed prematurely
+io.lettuce.core.RedisConnectionException: Connection closed prematurely
+	at io.lettuce.core.protocol.RedisHandshakeHandler.channelInactive(RedisHandshakeHandler.java:91)
+	at io.netty.channel.AbstractChannelHandlerContext.invokeChannelInactive(AbstractChannelHandlerContext.java:303)
+	at io.netty.channel.AbstractChannelHandlerContext.invokeChannelInactive(AbstractChannelHandlerContext.java:281)
+	at io.netty.channel.AbstractChannelHandlerContext.fireChannelInactive(AbstractChannelHandlerContext.java:274)
+	at io.netty.channel.ChannelInboundHandlerAdapter.channelInactive(ChannelInboundHandlerAdapter.java:81)
+	at io.lettuce.core.ChannelGroupListener.channelInactive(ChannelGroupListener.java:69)
+	at io.netty.channel.AbstractChannelHandlerContext.invokeChannelInactive(AbstractChannelHandlerContext.java:303)
+	at io.netty.channel.AbstractChannelHandlerContext.invokeChannelInactive(AbstractChannelHandlerContext.java:281)
+	at io.netty.channel.AbstractChannelHandlerContext.fireChannelInactive(AbstractChannelHandlerContext.java:274)
+	at io.netty.channel.DefaultChannelPipeline$HeadContext.channelInactive(DefaultChannelPipeline.java:1352)
+	at io.netty.channel.AbstractChannelHandlerContext.invokeChannelInactive(AbstractChannelHandlerContext.java:301)
+	at io.netty.channel.AbstractChannelHandlerContext.invokeChannelInactive(AbstractChannelHandlerContext.java:281)
+	at io.netty.channel.DefaultChannelPipeline.fireChannelInactive(DefaultChannelPipeline.java:850)
+	at io.netty.channel.AbstractChannel$AbstractUnsafe$7.run(AbstractChannel.java:811)
+	at io.netty.util.concurrent.AbstractEventExecutor.runTask(AbstractEventExecutor.java:173)
+	at io.netty.util.concurrent.AbstractEventExecutor.safeExecute(AbstractEventExecutor.java:166)
+	at io.netty.util.concurrent.SingleThreadEventExecutor.runAllTasks(SingleThreadEventExecutor.java:472)
+	at io.netty.channel.nio.NioEventLoop.run(NioEventLoop.java:566)
+	at io.netty.util.concurrent.SingleThreadEventExecutor$4.run(SingleThreadEventExecutor.java:997)
+	at io.netty.util.internal.ThreadExecutorMap$2.run(ThreadExecutorMap.java:74)
+	at io.netty.util.concurrent.FastThreadLocalRunnable.run(FastThreadLocalRunnable.java:30)
+	at java.base/java.lang.Thread.run(Unknown Source)
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

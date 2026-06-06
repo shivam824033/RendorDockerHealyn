@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.healyn.notifications.NotificationPublisherTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-06-06T05:43:29" hostname="LAPTOP-7J416IAG" time="0.015">
+  <properties/>
+  <testcase name="enqueueToPatientManagers_writes_only_for_opted_in_managers()" classname="com.healyn.notifications.NotificationPublisherTest" time="0.005"/>
+  <testcase name="enqueueToPatientManagers_fans_out_one_row_per_manager()" classname="com.healyn.notifications.NotificationPublisherTest" time="0.002"/>
+  <testcase name="enqueueToAccount_skips_a_recipient_who_opted_out()" classname="com.healyn.notifications.NotificationPublisherTest" time="0.001"/>
+  <testcase name="enqueueToAccount_writes_one_pending_row()" classname="com.healyn.notifications.NotificationPublisherTest" time="0.002"/>
+  <testcase name="enqueueToPatientManagers_writes_nothing_when_no_managers()" classname="com.healyn.notifications.NotificationPublisherTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

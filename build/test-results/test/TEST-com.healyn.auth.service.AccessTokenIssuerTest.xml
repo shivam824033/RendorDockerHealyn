@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.healyn.auth.service.AccessTokenIssuerTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2026-06-06T05:42:19" hostname="LAPTOP-7J416IAG" time="0.107">
+  <properties/>
+  <testcase name="issued_token_verifies_with_public_key_and_carries_required_claims()" classname="com.healyn.auth.service.AccessTokenIssuerTest" time="0.107"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

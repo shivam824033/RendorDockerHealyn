@@ -1,0 +1,112 @@
+spring:
+  application:
+    name: healyn-backend
+  profiles:
+    active: ${HEALYN_PROFILE:local}
+  datasource:
+    url: jdbc:postgresql://${HEALYN_DB_HOST:localhost}:${HEALYN_DB_PORT:5432}/${HEALYN_DB_NAME:healyn}
+    username: ${HEALYN_DB_USER:postgres}
+    password: ${HEALYN_DB_PASSWORD:postgres}
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 4
+      pool-name: healyn-pool
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+        format_sql: false
+  flyway:
+    enabled: true
+    baseline-on-migrate: false
+    validate-on-migrate: true
+    locations: classpath:db/migration
+  data:
+    redis:
+      host: ${HEALYN_REDIS_HOST:localhost}
+      port: ${HEALYN_REDIS_PORT:6379}
+      password: ${HEALYN_REDIS_PASSWORD:}
+      database: ${HEALYN_REDIS_DB:0}
+  mvc:
+    throw-exception-if-no-handler-found: true
+  web:
+    resources:
+      add-mappings: false
+  jackson:
+    default-property-inclusion: non_null
+
+server:
+  port: ${HEALYN_HTTP_PORT:8080}
+  error:
+    include-message: never
+    include-stacktrace: never
+    include-binding-errors: never
+  forward-headers-strategy: framework
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info, prometheus
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      show-details: never
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operationsSorter: method
+    tagsSorter: alpha
+    tryItOutEnabled: true
+    persistAuthorization: true
+    displayRequestDuration: true
+  show-actuator: false
+
+healyn:
+  s3:
+    endpoint: ${HEALYN_S3_ENDPOINT:http://localhost:9000}
+    # Host put into presigned upload/download URLs (the one the device reaches);
+    # blank reuses `endpoint`. Set to your LAN IP for on-device file uploads.
+    public-endpoint: ${HEALYN_S3_PUBLIC_ENDPOINT:}
+    region: ${HEALYN_S3_REGION:us-east-1}
+    access-key: ${HEALYN_S3_ACCESS_KEY:minioadmin}
+    secret-key: ${HEALYN_S3_SECRET_KEY:minioadmin}
+    bucket: ${HEALYN_S3_BUCKET:healyn-files-dev}
+    presign-ttl-seconds: 300
+  jwt:
+    issuer: healyn
+    audience: healyn-mobile
+    access-token-ttl-seconds: 900
+    refresh-token-ttl-days: 30
+    private-key-path: ${HEALYN_JWT_PRIVATE_KEY_PATH:}
+    public-key-path: ${HEALYN_JWT_PUBLIC_KEY_PATH:}
+  password:
+    pepper: ${HEALYN_PASSWORD_PEPPER:}
+  # Local/dev only: DevPhysioSeeder upserts one ROLE_PHYSIO login so the
+  # physiotherapist app is reachable. Never used in prod, where the physio is
+  # provisioned by an operator (README §5.1). The password is a dev default —
+  # not a real secret.
+  dev:
+    physio:
+      email: ${HEALYN_DEV_PHYSIO_EMAIL:physio@healyn.local}
+      password: ${HEALYN_DEV_PHYSIO_PASSWORD:Physio!Dev123}
+  notifications:
+    poller-enabled: ${HEALYN_NOTIFICATIONS_POLLER_ENABLED:true}
+    poll-interval-ms: ${HEALYN_NOTIFICATIONS_POLL_INTERVAL_MS:2000}
+    batch-size: ${HEALYN_NOTIFICATIONS_BATCH_SIZE:50}
+    max-attempts: ${HEALYN_NOTIFICATIONS_MAX_ATTEMPTS:5}
+    backoff-base-seconds: ${HEALYN_NOTIFICATIONS_BACKOFF_BASE_SECONDS:2}
+    lease-seconds: ${HEALYN_NOTIFICATIONS_LEASE_SECONDS:60}
+  # When HEALYN_FCM_CREDENTIALS_PATH is set the real FirebaseFcmSender activates; when blank
+  # the logging sender is used in local/test, but NotificationsConfig fails fast in any other
+  # profile so a misconfigured prod deploy can't silently drop all push.
+  fcm:
+    credentials-path: ${HEALYN_FCM_CREDENTIALS_PATH:}

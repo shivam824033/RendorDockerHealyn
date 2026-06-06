@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.healyn.auth.AuthIntegrationTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-06-06T05:42:14" hostname="LAPTOP-7J416IAG" time="3.398">
+  <properties/>
+  <testcase name="otp_rate_limit_returns_429_on_fourth_request_within_window()" classname="com.healyn.auth.AuthIntegrationTest" time="0.11"/>
+  <testcase name="register_login_refresh_list_revoke_happy_path()" classname="com.healyn.auth.AuthIntegrationTest" time="0.848"/>
+  <testcase name="five_failed_logins_lock_the_account()" classname="com.healyn.auth.AuthIntegrationTest" time="1.659"/>
+  <testcase name="register_creates_primary_patient_for_account()" classname="com.healyn.auth.AuthIntegrationTest" time="0.328"/>
+  <testcase name="register_complete_without_valid_otp_returns_422()" classname="com.healyn.auth.AuthIntegrationTest" time="0.028"/>
+  <testcase name="refresh_token_replay_revokes_all_sessions_for_account()" classname="com.healyn.auth.AuthIntegrationTest" time="0.42"/>
+  <system-out><![CDATA[2026-06-06T11:12:07.649+05:30 WARN  [,,] i.l.core.protocol.ConnectionWatchdog - Cannot reconnect to [localhost/<unresolved>:54669]: Connection refused: getsockopt: localhost/127.0.0.1:54669
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v3.3.5)
+
+2026-06-06T11:12:08.774+05:30 INFO  [,,] com.healyn.auth.AuthIntegrationTest - Starting AuthIntegrationTest using Java 21.0.10 with PID 16088 (started by Shivam jaiswal in C:\CloudeCode\Healyn\backend)
+2026-06-06T11:12:08.774+05:30 INFO  [,,] com.healyn.auth.AuthIntegrationTest - The following 1 profile is active: "test"
+2026-06-06T11:12:12.909+05:30 WARN  [,,] c.healyn.auth.service.JwtKeyProvider - JWT keys not configured — generating ephemeral RSA-2048 keypair (active profile only).
+2026-06-06T11:12:13.339+05:30 INFO  [,,] c.h.n.config.NotificationsConfig - FCM credentials-path not configured — using logging sender (no push delivery).
+2026-06-06T11:12:14.350+05:30 INFO  [,,] com.healyn.auth.AuthIntegrationTest - Started AuthIntegrationTest in 5.656 seconds (process running for 58.034)
+2026-06-06T11:12:15.854+05:30 WARN  [,,] i.l.core.protocol.ConnectionWatchdog - Cannot reconnect to [localhost/<unresolved>:54669]: Connection refused: getsockopt: localhost/127.0.0.1:54669
+2026-06-06T11:12:17.721+05:30 WARN  [14097133-5e72-40fd-ae29-895e5dfb0f21,e68b2604-1e39-41f3-9c09-04420a36bfdd,] c.h.a.service.DeviceSessionService - Refresh-token reuse detected for account 019e9b74-192c-70b6-9461-e8dba936c330 — revoking all sessions
+2026-06-06T11:12:18.416+05:30 WARN  [,,] i.l.core.protocol.ConnectionWatchdog - Cannot reconnect to [localhost/<unresolved>:54696]: Connection closed prematurely
+io.lettuce.core.RedisConnectionException: Connection closed prematurely
+	at io.lettuce.core.protocol.RedisHandshakeHandler.channelInactive(RedisHandshakeHandler.java:91)
+	at io.netty.channel.AbstractChannelHandlerContext.invokeChannelInactive(AbstractChannelHandlerContext.java:303)
+	at io.netty.channel.AbstractChannelHandlerContext.invokeChannelInactive(AbstractChannelHandlerContext.java:281)
+	at io.netty.channel.AbstractChannelHandlerContext.fireChannelInactive(AbstractChannelHandlerContext.java:274)
+	at io.netty.channel.ChannelInboundHandlerAdapter.channelInactive(ChannelInboundHandlerAdapter.java:81)
+	at io.lettuce.core.ChannelGroupListener.channelInactive(ChannelGroupListener.java:69)
+	at io.netty.channel.AbstractChannelHandlerContext.invokeChannelInactive(AbstractChannelHandlerContext.java:303)
+	at io.netty.channel.AbstractChannelHandlerContext.invokeChannelInactive(AbstractChannelHandlerContext.java:281)
+	at io.netty.channel.AbstractChannelHandlerContext.fireChannelInactive(AbstractChannelHandlerContext.java:274)
+	at io.netty.channel.DefaultChannelPipeline$HeadContext.channelInactive(DefaultChannelPipeline.java:1352)
+	at io.netty.channel.AbstractChannelHandlerContext.invokeChannelInactive(AbstractChannelHandlerContext.java:301)
+	at io.netty.channel.AbstractChannelHandlerContext.invokeChannelInactive(AbstractChannelHandlerContext.java:281)
+	at io.netty.channel.DefaultChannelPipeline.fireChannelInactive(DefaultChannelPipeline.java:850)
+	at io.netty.channel.AbstractChannel$AbstractUnsafe$7.run(AbstractChannel.java:811)
+	at io.netty.util.concurrent.AbstractEventExecutor.runTask(AbstractEventExecutor.java:173)
+	at io.netty.util.concurrent.AbstractEventExecutor.safeExecute(AbstractEventExecutor.java:166)
+	at io.netty.util.concurrent.SingleThreadEventExecutor.runAllTasks(SingleThreadEventExecutor.java:472)
+	at io.netty.channel.nio.NioEventLoop.run(NioEventLoop.java:566)
+	at io.netty.util.concurrent.SingleThreadEventExecutor$4.run(SingleThreadEventExecutor.java:997)
+	at io.netty.util.internal.ThreadExecutorMap$2.run(ThreadExecutorMap.java:74)
+	at io.netty.util.concurrent.FastThreadLocalRunnable.run(FastThreadLocalRunnable.java:30)
+	at java.base/java.lang.Thread.run(Unknown Source)
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

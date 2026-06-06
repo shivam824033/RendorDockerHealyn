@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.healyn.notifications.FcmTokenServiceTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-06-06T05:43:19" hostname="LAPTOP-7J416IAG" time="0.009">
+  <properties/>
+  <testcase name="register_new_token_inserts_a_row()" classname="com.healyn.notifications.FcmTokenServiceTest" time="0.002"/>
+  <testcase name="register_defaults_platform_to_android_when_blank()" classname="com.healyn.notifications.FcmTokenServiceTest" time="0.002"/>
+  <testcase name="register_existing_token_reassigns_without_inserting()" classname="com.healyn.notifications.FcmTokenServiceTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.healyn.discussion.DiscussionServiceEditWindowTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-06-06T05:43:00" hostname="LAPTOP-7J416IAG" time="0.011">
+  <properties/>
+  <testcase name="edit_after_5_minutes_is_rejected()" classname="com.healyn.discussion.DiscussionServiceEditWindowTest" time="0.002"/>
+  <testcase name="delete_within_window_sets_deleted_at()" classname="com.healyn.discussion.DiscussionServiceEditWindowTest" time="0.002"/>
+  <testcase name="edit_by_non_sender_is_rejected()" classname="com.healyn.discussion.DiscussionServiceEditWindowTest" time="0.002"/>
+  <testcase name="edit_within_window_updates_body_and_sets_edited_at()" classname="com.healyn.discussion.DiscussionServiceEditWindowTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

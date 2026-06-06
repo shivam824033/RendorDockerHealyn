@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.healyn.notifications.NotificationPreferencesServiceTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-06-06T05:43:29" hostname="LAPTOP-7J416IAG" time="0.017">
+  <properties/>
+  <testcase name="update_creates_row_applying_only_the_provided_fields()" classname="com.healyn.notifications.NotificationPreferencesServiceTest" time="0.004"/>
+  <testcase name="get_returns_all_enabled_defaults_without_persisting_when_none_stored()" classname="com.healyn.notifications.NotificationPreferencesServiceTest" time="0.001"/>
+  <testcase name="isEnabledFor_maps_kind_to_its_category()" classname="com.healyn.notifications.NotificationPreferencesServiceTest" time="0.004"/>
+  <testcase name="isEnabledFor_defaults_to_true_when_no_row_exists()" classname="com.healyn.notifications.NotificationPreferencesServiceTest" time="0.001"/>
+  <testcase name="update_leaves_a_null_field_unchanged_on_an_existing_row()" classname="com.healyn.notifications.NotificationPreferencesServiceTest" time="0.003"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

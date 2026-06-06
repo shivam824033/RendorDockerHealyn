@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.healyn.availability.AvailabilityIntegrationTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-06-06T05:42:29" hostname="LAPTOP-7J416IAG" time="1.073">
+  <properties/>
+  <testcase name="slot_range_over_31_days_returns_422()" classname="com.healyn.availability.AvailabilityIntegrationTest" time="0.094"/>
+  <testcase name="overlapping_blackout_returns_409()" classname="com.healyn.availability.AvailabilityIntegrationTest" time="0.071"/>
+  <testcase name="physio_creates_rule_and_blackout_then_patient_sees_correct_slots()" classname="com.healyn.availability.AvailabilityIntegrationTest" time="0.47"/>
+  <testcase name="archiving_rule_excludes_future_dates_from_slot_listing()" classname="com.healyn.availability.AvailabilityIntegrationTest" time="0.093"/>
+  <testcase name="patient_cannot_create_rule()" classname="com.healyn.availability.AvailabilityIntegrationTest" time="0.315"/>
+  <testcase name="invalid_timezone_returns_422()" classname="com.healyn.availability.AvailabilityIntegrationTest" time="0.024"/>
+  <system-out><![CDATA[2026-06-06T11:12:23.510+05:30 WARN  [,,] i.l.core.protocol.ConnectionWatchdog - Cannot reconnect to [localhost/<unresolved>:54696]: Connection refused: getsockopt: localhost/127.0.0.1:54696
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v3.3.5)
+
+2026-06-06T11:12:25.178+05:30 INFO  [,,] c.h.a.AvailabilityIntegrationTest - Starting AvailabilityIntegrationTest using Java 21.0.10 with PID 16088 (started by Shivam jaiswal in C:\CloudeCode\Healyn\backend)
+2026-06-06T11:12:25.179+05:30 INFO  [,,] c.h.a.AvailabilityIntegrationTest - The following 1 profile is active: "test"
+2026-06-06T11:12:28.473+05:30 WARN  [,,] c.healyn.auth.service.JwtKeyProvider - JWT keys not configured — generating ephemeral RSA-2048 keypair (active profile only).
+2026-06-06T11:12:29.017+05:30 INFO  [,,] c.h.n.config.NotificationsConfig - FCM credentials-path not configured — using logging sender (no push delivery).
+2026-06-06T11:12:29.822+05:30 INFO  [,,] c.h.a.AvailabilityIntegrationTest - Started AvailabilityIntegrationTest in 4.692 seconds (process running for 73.505)
+2026-06-06T11:12:29.990+05:30 WARN  [99f4da54-767a-4f22-9928-87c64014d0dd,1fc8f1f7-a757-425a-816c-764002959836,] o.h.e.jdbc.spi.SqlExceptionHelper - SQL Error: 0, SQLState: 23P01
+2026-06-06T11:12:29.990+05:30 ERROR [99f4da54-767a-4f22-9928-87c64014d0dd,1fc8f1f7-a757-425a-816c-764002959836,] o.h.e.jdbc.spi.SqlExceptionHelper - ERROR: conflicting key value violates exclusion constraint "blackout_windows_no_overlap"
+  Detail: Key (physiotherapist_id, tstzrange(starts_at, ends_at, '[)'::text))=(019e9b74-4929-7a39-af46-af741fcbc4ea, ["2026-07-01 15:30:00+05:30","2026-07-01 17:30:00+05:30")) conflicts with existing key (physiotherapist_id, tstzrange(starts_at, ends_at, '[)'::text))=(019e9b74-4929-7a39-af46-af741fcbc4ea, ["2026-07-01 14:30:00+05:30","2026-07-01 16:30:00+05:30")).
+2026-06-06T11:12:31.620+05:30 WARN  [,,] i.l.core.protocol.ConnectionWatchdog - Cannot reconnect to [localhost/<unresolved>:54722]: Connection closed prematurely
+io.lettuce.core.RedisConnectionException: Connection closed prematurely
+	at io.lettuce.core.protocol.RedisHandshakeHandler.channelInactive(RedisHandshakeHandler.java:91)
+	at io.netty.channel.AbstractChannelHandlerContext.invokeChannelInactive(AbstractChannelHandlerContext.java:303)
+	at io.netty.channel.AbstractChannelHandlerContext.invokeChannelInactive(AbstractChannelHandlerContext.java:281)
+	at io.netty.channel.AbstractChannelHandlerContext.fireChannelInactive(AbstractChannelHandlerContext.java:274)
+	at io.netty.channel.ChannelInboundHandlerAdapter.channelInactive(ChannelInboundHandlerAdapter.java:81)
+	at io.lettuce.core.ChannelGroupListener.channelInactive(ChannelGroupListener.java:69)
+	at io.netty.channel.AbstractChannelHandlerContext.invokeChannelInactive(AbstractChannelHandlerContext.java:303)
+	at io.netty.channel.AbstractChannelHandlerContext.invokeChannelInactive(AbstractChannelHandlerContext.java:281)
+	at io.netty.channel.AbstractChannelHandlerContext.fireChannelInactive(AbstractChannelHandlerContext.java:274)
+	at io.netty.channel.DefaultChannelPipeline$HeadContext.channelInactive(DefaultChannelPipeline.java:1352)
+	at io.netty.channel.AbstractChannelHandlerContext.invokeChannelInactive(AbstractChannelHandlerContext.java:301)
+	at io.netty.channel.AbstractChannelHandlerContext.invokeChannelInactive(AbstractChannelHandlerContext.java:281)
+	at io.netty.channel.DefaultChannelPipeline.fireChannelInactive(DefaultChannelPipeline.java:850)
+	at io.netty.channel.AbstractChannel$AbstractUnsafe$7.run(AbstractChannel.java:811)
+	at io.netty.util.concurrent.AbstractEventExecutor.runTask(AbstractEventExecutor.java:173)
+	at io.netty.util.concurrent.AbstractEventExecutor.safeExecute(AbstractEventExecutor.java:166)
+	at io.netty.util.concurrent.SingleThreadEventExecutor.runAllTasks(SingleThreadEventExecutor.java:472)
+	at io.netty.channel.nio.NioEventLoop.run(NioEventLoop.java:566)
+	at io.netty.util.concurrent.SingleThreadEventExecutor$4.run(SingleThreadEventExecutor.java:997)
+	at io.netty.util.internal.ThreadExecutorMap$2.run(ThreadExecutorMap.java:74)
+	at io.netty.util.concurrent.FastThreadLocalRunnable.run(FastThreadLocalRunnable.java:30)
+	at java.base/java.lang.Thread.run(Unknown Source)
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

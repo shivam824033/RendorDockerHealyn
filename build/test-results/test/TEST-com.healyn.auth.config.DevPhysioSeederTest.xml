@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.healyn.auth.config.DevPhysioSeederTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-06-06T05:42:18" hostname="LAPTOP-7J416IAG" time="0.035">
+  <properties/>
+  <testcase name="seeds_a_physio_account_when_absent()" classname="com.healyn.auth.config.DevPhysioSeederTest" time="0.027"/>
+  <testcase name="skips_when_credentials_are_blank()" classname="com.healyn.auth.config.DevPhysioSeederTest" time="0.004"/>
+  <testcase name="is_idempotent_and_normalises_email_case()" classname="com.healyn.auth.config.DevPhysioSeederTest" time="0.001"/>
+  <system-out><![CDATA[2026-06-06T11:12:18.975+05:30 INFO  [,,] c.healyn.auth.config.DevPhysioSeeder - Seeded dev physiotherapist account: physio@healyn.local
+2026-06-06T11:12:18.979+05:30 WARN  [,,] c.healyn.auth.config.DevPhysioSeeder - Dev physio seed skipped: healyn.dev.physio.email/password not configured
+2026-06-06T11:12:18.984+05:30 INFO  [,,] c.healyn.auth.config.DevPhysioSeeder - Dev physiotherapist account already present (physio@healyn.local); skipping seed
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

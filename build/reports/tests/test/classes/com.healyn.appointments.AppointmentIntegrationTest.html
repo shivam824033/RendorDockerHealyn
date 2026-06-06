@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<meta http-equiv="x-ua-compatible" content="IE=edge"/>
+<title>Test results - AppointmentIntegrationTest</title>
+<link href="../css/base-style.css" rel="stylesheet" type="text/css"/>
+<link href="../css/style.css" rel="stylesheet" type="text/css"/>
+<script src="../js/report.js" type="text/javascript"></script>
+</head>
+<body>
+<div id="content">
+<h1>AppointmentIntegrationTest</h1>
+<div class="breadcrumbs">
+<a href="../index.html">all</a> &gt; 
+<a href="../packages/com.healyn.appointments.html">com.healyn.appointments</a> &gt; AppointmentIntegrationTest</div>
+<div id="summary">
+<table>
+<tr>
+<td>
+<div class="summaryGroup">
+<table>
+<tr>
+<td>
+<div class="infoBox" id="tests">
+<div class="counter">18</div>
+<p>tests</p>
+</div>
+</td>
+<td>
+<div class="infoBox" id="failures">
+<div class="counter">0</div>
+<p>failures</p>
+</div>
+</td>
+<td>
+<div class="infoBox" id="ignored">
+<div class="counter">0</div>
+<p>ignored</p>
+</div>
+</td>
+<td>
+<div class="infoBox" id="duration">
+<div class="counter">11.541s</div>
+<p>duration</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</td>
+<td>
+<div class="infoBox success" id="successRate">
+<div class="percent">100%</div>
+<p>successful</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div id="tabs">
+<ul class="tabLinks">
+<li>
+<a href="#tab0">Tests</a>
+</li>
+<li>
+<a href="#tab1">Standard output</a>
+</li>
+<li>
+<a href="#tab2">Standard error</a>
+</li>
+</ul>
+<div id="tab0" class="tab">
+<h2>Tests</h2>
+<table>
+<thead>
+<tr>
+<th>Test</th>
+<th>Duration</th>
+<th>Result</th>
+</tr>
+</thead>
+<tr>
+<td class="success">calendar_rejects_an_inverted_range()</td>
+<td class="success">0.347s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">calendar_returns_only_appointments_inside_the_window()</td>
+<td class="success">0.449s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">cancel_without_reason_returns_422()</td>
+<td class="success">3.128s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">cursor_pagination_walks_all_pages()</td>
+<td class="success">0.689s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">idempotency_replay_returns_same_appointment_id()</td>
+<td class="success">0.395s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">patient_cannot_create_a_follow_up()</td>
+<td class="success">0.350s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">patient_cannot_schedule_a_request()</td>
+<td class="success">0.332s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">patient_cannot_transition_to_completed()</td>
+<td class="success">0.581s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">patient_reschedule_creates_a_new_unscheduled_request()</td>
+<td class="success">0.512s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">physio_creates_a_follow_up()</td>
+<td class="success">0.417s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">physio_list_filters_to_a_single_patient_via_patient_id_param()</td>
+<td class="success">0.683s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">physio_reschedule_creates_a_confirmed_row()</td>
+<td class="success">0.449s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">physio_schedules_a_request_to_confirmed()</td>
+<td class="success">0.371s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">request_for_a_date_without_availability_is_accepted()</td>
+<td class="success">0.390s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">scheduling_an_overlapping_time_returns_409()</td>
+<td class="success">0.518s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">two_patients_can_request_the_same_date_without_conflict()</td>
+<td class="success">0.744s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">upcoming_is_scoped_to_the_callers_own_patients()</td>
+<td class="success">0.715s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">upcoming_lists_confirmed_ascending_and_excludes_unscheduled_requests()</td>
+<td class="success">0.471s</td>
+<td class="success">passed</td>
+</tr>
+</table>
+</div>
+<div id="tab1" class="tab">
+<h2>Standard output</h2>
+<span class="code">
+<pre>11:11:19.833 [Test worker] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.healyn.HealynApplication for test class com.healyn.appointments.AppointmentIntegrationTest
+11:11:20.171 [Test worker] INFO org.testcontainers.images.PullPolicy -- Image pull policy will be performed by: DefaultPullPolicy()
+11:11:20.179 [Test worker] INFO org.testcontainers.utility.ImageNameSubstitutor -- Image name substitution will be performed by: DefaultImageNameSubstitutor (composite of 'ConfigurationFileImageNameSubstitutor' and 'PrefixingImageNameSubstitutor')
+11:11:20.196 [Test worker] INFO org.testcontainers.DockerClientFactory -- Testcontainers version: 1.20.6
+11:11:21.118 [Test worker] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Found Docker environment with Environment variables, system properties and defaults. Resolved dockerHost=tcp://localhost:2375
+11:11:21.120 [Test worker] INFO org.testcontainers.DockerClientFactory -- Docker host IP address is localhost
+11:11:21.155 [Test worker] INFO org.testcontainers.DockerClientFactory -- Connected to docker: 
+  Server Version: 29.4.3
+  API Version: 1.54
+  Operating System: Docker Desktop
+  Total Memory: 2837 MB
+  Labels: 
+    com.docker.desktop.address=npipe://\\.\pipe\docker_cli
+11:11:21.411 [Test worker] INFO tc.testcontainers/ryuk:0.11.0 -- Creating container for image: testcontainers/ryuk:0.11.0
+11:11:21.958 [Test worker] INFO tc.testcontainers/ryuk:0.11.0 -- Container testcontainers/ryuk:0.11.0 is starting: c6ea269fd3dfe42c6b3038dc54bdc5d4ffc8aa73533e8ecc62ecdce12af9dd30
+11:11:22.668 [Test worker] INFO tc.testcontainers/ryuk:0.11.0 -- Container testcontainers/ryuk:0.11.0 started in PT1.2573712S
+11:11:22.682 [Test worker] INFO org.testcontainers.utility.RyukResourceReaper -- Ryuk started - will monitor and terminate Testcontainers containers on JVM exit
+11:11:22.682 [Test worker] INFO org.testcontainers.DockerClientFactory -- Checking the system...
+11:11:22.683 [Test worker] INFO org.testcontainers.DockerClientFactory -- ✔︎ Docker server version should be at least 1.6.0
+11:11:22.683 [Test worker] INFO tc.redis:7-alpine -- Creating container for image: redis:7-alpine
+11:11:22.843 [Test worker] INFO tc.redis:7-alpine -- Container redis:7-alpine is starting: 3552187f9a735a4c9853b9d98a06a171bd8941c189c93adfc9a3b086996eed3c
+11:11:23.300 [Test worker] INFO tc.redis:7-alpine -- Container redis:7-alpine started in PT0.6158143S
+11:11:23.300 [Test worker] INFO tc.postgres:16-alpine -- Creating container for image: postgres:16-alpine
+11:11:23.467 [Test worker] INFO tc.postgres:16-alpine -- Container postgres:16-alpine is starting: 1ec836f57a3c5ff9d86388dc2858bfd2fc577980536f4978cb7a8d12ff53d2d9
+11:11:26.583 [Test worker] INFO tc.postgres:16-alpine -- Container postgres:16-alpine started in PT3.2825119S
+11:11:26.584 [Test worker] INFO tc.postgres:16-alpine -- Container is started (JDBC URL: jdbc:postgresql://localhost:54672/test?loggerLevel=OFF)
+11:11:19,175 |-INFO in ch.qos.logback.classic.LoggerContext[default] - This is logback-classic version 1.5.11
+11:11:19,185 |-INFO in ch.qos.logback.classic.util.ContextInitializer@4c5406b - Here is a list of configurators discovered as a service, by rank: 
+11:11:19,185 |-INFO in ch.qos.logback.classic.util.ContextInitializer@4c5406b -   org.springframework.boot.logging.logback.RootLogLevelConfigurator
+11:11:19,185 |-INFO in ch.qos.logback.classic.util.ContextInitializer@4c5406b - They will be invoked in order until ExecutionStatus.DO_NOT_INVOKE_NEXT_IF_ANY is returned.
+11:11:19,185 |-INFO in ch.qos.logback.classic.util.ContextInitializer@4c5406b - Constructed configurator of type class org.springframework.boot.logging.logback.RootLogLevelConfigurator
+11:11:19,195 |-INFO in ch.qos.logback.classic.util.ContextInitializer@4c5406b - org.springframework.boot.logging.logback.RootLogLevelConfigurator.configure() call lasted 1 milliseconds. ExecutionStatus=INVOKE_NEXT_IF_ANY
+11:11:19,195 |-INFO in ch.qos.logback.classic.util.ContextInitializer@4c5406b - Trying to configure with ch.qos.logback.classic.joran.SerializedModelConfigurator
+11:11:19,196 |-INFO in ch.qos.logback.classic.util.ContextInitializer@4c5406b - Constructed configurator of type class ch.qos.logback.classic.joran.SerializedModelConfigurator
+11:11:19,202 |-INFO in ch.qos.logback.classic.LoggerContext[default] - Could NOT find resource [logback-test.scmo]
+11:11:19,204 |-INFO in ch.qos.logback.classic.LoggerContext[default] - Could NOT find resource [logback.scmo]
+11:11:19,204 |-INFO in ch.qos.logback.classic.util.ContextInitializer@4c5406b - ch.qos.logback.classic.joran.SerializedModelConfigurator.configure() call lasted 8 milliseconds. ExecutionStatus=INVOKE_NEXT_IF_ANY
+11:11:19,204 |-INFO in ch.qos.logback.classic.util.ContextInitializer@4c5406b - Trying to configure with ch.qos.logback.classic.util.DefaultJoranConfigurator
+11:11:19,205 |-INFO in ch.qos.logback.classic.util.ContextInitializer@4c5406b - Constructed configurator of type class ch.qos.logback.classic.util.DefaultJoranConfigurator
+11:11:19,206 |-INFO in ch.qos.logback.classic.LoggerContext[default] - Could NOT find resource [logback-test.xml]
+11:11:19,208 |-INFO in ch.qos.logback.classic.LoggerContext[default] - Could NOT find resource [logback.xml]
+11:11:19,208 |-INFO in ch.qos.logback.classic.util.ContextInitializer@4c5406b - ch.qos.logback.classic.util.DefaultJoranConfigurator.configure() call lasted 3 milliseconds. ExecutionStatus=INVOKE_NEXT_IF_ANY
+11:11:19,208 |-INFO in ch.qos.logback.classic.util.ContextInitializer@4c5406b - Trying to configure with ch.qos.logback.classic.BasicConfigurator
+11:11:19,211 |-INFO in ch.qos.logback.classic.util.ContextInitializer@4c5406b - Constructed configurator of type class ch.qos.logback.classic.BasicConfigurator
+11:11:19,211 |-INFO in ch.qos.logback.classic.BasicConfigurator@66b0e207 - Setting up default configuration.
+11:11:19,254 |-INFO in ch.qos.logback.classic.util.ContextInitializer@4c5406b - ch.qos.logback.classic.BasicConfigurator.configure() call lasted 43 milliseconds. ExecutionStatus=NEUTRAL
+11:11:27,320 |-INFO in ch.qos.logback.core.model.processor.AppenderModelHandler - Processing appender named [CONSOLE]
+11:11:27,320 |-INFO in ch.qos.logback.core.model.processor.AppenderModelHandler - About to instantiate appender of type [ch.qos.logback.core.ConsoleAppender]
+11:11:27,327 |-INFO in ch.qos.logback.core.model.processor.ImplicitModelHandler - Assuming default type [ch.qos.logback.classic.encoder.PatternLayoutEncoder] for [encoder] property
+11:11:27,367 |-WARN in ch.qos.logback.core.model.processor.AppenderModelHandler - Appender named [JSON] not referenced. Skipping further processing.
+11:11:27,367 |-INFO in ch.qos.logback.classic.model.processor.RootLoggerModelHandler - Setting level of ROOT logger to INFO
+11:11:27,368 |-INFO in ch.qos.logback.classic.jul.LevelChangePropagator@74a58a06 - Propagating INFO level on Logger[ROOT] onto the JUL framework
+11:11:27,369 |-INFO in ch.qos.logback.core.model.processor.AppenderRefModelHandler - Attaching appender named [CONSOLE] to Logger[ROOT]
+11:11:27,369 |-INFO in ch.qos.logback.core.model.processor.DefaultProcessor@7308c820 - End of configuration.
+11:11:27,369 |-INFO in org.springframework.boot.logging.logback.SpringBootJoranConfigurator@5d601832 - Registering current configuration as safe fallback point
+
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v3.3.5)
+
+2026-06-06T11:11:27.600+05:30 INFO  [,,] c.h.a.AppointmentIntegrationTest - Starting AppointmentIntegrationTest using Java 21.0.10 with PID 16088 (started by Shivam jaiswal in C:\CloudeCode\Healyn\backend)
+2026-06-06T11:11:27.602+05:30 INFO  [,,] c.h.a.AppointmentIntegrationTest - The following 1 profile is active: &quot;test&quot;
+2026-06-06T11:11:41.503+05:30 WARN  [,,] c.healyn.auth.service.JwtKeyProvider - JWT keys not configured — generating ephemeral RSA-2048 keypair (active profile only).
+2026-06-06T11:11:43.215+05:30 INFO  [,,] c.h.n.config.NotificationsConfig - FCM credentials-path not configured — using logging sender (no push delivery).
+2026-06-06T11:11:46.030+05:30 INFO  [,,] c.h.a.AppointmentIntegrationTest - Started AppointmentIntegrationTest in 19.364 seconds (process running for 29.713)
+2026-06-06T11:11:53.255+05:30 WARN  [a313d8d1-b037-401e-8874-ddf8951e18a9,355fa70b-64dc-4b13-9acd-65954d6df659,] o.h.e.jdbc.spi.SqlExceptionHelper - SQL Error: 0, SQLState: 23P01
+2026-06-06T11:11:53.256+05:30 ERROR [a313d8d1-b037-401e-8874-ddf8951e18a9,355fa70b-64dc-4b13-9acd-65954d6df659,] o.h.e.jdbc.spi.SqlExceptionHelper - ERROR: conflicting key value violates exclusion constraint &quot;appointments_no_physio_overlap&quot;
+  Detail: Key (physiotherapist_id, tstzrange(scheduled_at, scheduled_end_at, '[)'::text))=(019e9b73-b800-7dca-99ee-7db9a41b2298, [&quot;2026-06-14 11:00:00+05:30&quot;,&quot;2026-06-14 11:30:00+05:30&quot;)) conflicts with existing key (physiotherapist_id, tstzrange(scheduled_at, scheduled_end_at, '[)'::text))=(019e9b73-b800-7dca-99ee-7db9a41b2298, [&quot;2026-06-14 11:00:00+05:30&quot;,&quot;2026-06-14 11:30:00+05:30&quot;)).
+2026-06-06T11:11:58.570+05:30 WARN  [,,] i.l.core.protocol.ConnectionWatchdog - Cannot reconnect to [localhost/&lt;unresolved&gt;:54669]: Connection closed prematurely
+io.lettuce.core.RedisConnectionException: Connection closed prematurely
+	at io.lettuce.core.protocol.RedisHandshakeHandler.channelInactive(RedisHandshakeHandler.java:91)
+	at io.netty.channel.AbstractChannelHandlerContext.invokeChannelInactive(AbstractChannelHandlerContext.java:303)
+	at io.netty.channel.AbstractChannelHandlerContext.invokeChannelInactive(AbstractChannelHandlerContext.java:281)
+	at io.netty.channel.AbstractChannelHandlerContext.fireChannelInactive(AbstractChannelHandlerContext.java:274)
+	at io.netty.channel.ChannelInboundHandlerAdapter.channelInactive(ChannelInboundHandlerAdapter.java:81)
+	at io.lettuce.core.ChannelGroupListener.channelInactive(ChannelGroupListener.java:69)
+	at io.netty.channel.AbstractChannelHandlerContext.invokeChannelInactive(AbstractChannelHandlerContext.java:303)
+	at io.netty.channel.AbstractChannelHandlerContext.invokeChannelInactive(AbstractChannelHandlerContext.java:281)
+	at io.netty.channel.AbstractChannelHandlerContext.fireChannelInactive(AbstractChannelHandlerContext.java:274)
+	at io.netty.channel.DefaultChannelPipeline$HeadContext.channelInactive(DefaultChannelPipeline.java:1352)
+	at io.netty.channel.AbstractChannelHandlerContext.invokeChannelInactive(AbstractChannelHandlerContext.java:301)
+	at io.netty.channel.AbstractChannelHandlerContext.invokeChannelInactive(AbstractChannelHandlerContext.java:281)
+	at io.netty.channel.DefaultChannelPipeline.fireChannelInactive(DefaultChannelPipeline.java:850)
+	at io.netty.channel.AbstractChannel$AbstractUnsafe$7.run(AbstractChannel.java:811)
+	at io.netty.util.concurrent.AbstractEventExecutor.runTask(AbstractEventExecutor.java:173)
+	at io.netty.util.concurrent.AbstractEventExecutor.safeExecute(AbstractEventExecutor.java:166)
+	at io.netty.util.concurrent.SingleThreadEventExecutor.runAllTasks(SingleThreadEventExecutor.java:472)
+	at io.netty.channel.nio.NioEventLoop.run(NioEventLoop.java:566)
+	at io.netty.util.concurrent.SingleThreadEventExecutor$4.run(SingleThreadEventExecutor.java:997)
+	at io.netty.util.internal.ThreadExecutorMap$2.run(ThreadExecutorMap.java:74)
+	at io.netty.util.concurrent.FastThreadLocalRunnable.run(FastThreadLocalRunnable.java:30)
+	at java.base/java.lang.Thread.run(Unknown Source)
+</pre>
+</span>
+</div>
+<div id="tab2" class="tab">
+<h2>Standard error</h2>
+<span class="code">
+<pre>WARNING: A Java agent has been loaded dynamically (C:\Users\Shivam jaiswal\.gradle\caches\modules-2\files-2.1\net.bytebuddy\byte-buddy-agent\1.14.19\154da3a65b4f4a909d3e5bdec55d1b2b4cbb6ce1\byte-buddy-agent-1.14.19.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+</pre>
+</span>
+</div>
+</div>
+<div id="footer">
+<p>
+<div>
+<label class="hidden" id="label-for-line-wrapping-toggle" for="line-wrapping-toggle">Wrap lines
+<input id="line-wrapping-toggle" type="checkbox" autocomplete="off"/>
+</label>
+</div>Generated by 
+<a href="http://www.gradle.org">Gradle 8.10.2</a> at 06-Jun-2026, 11:14:00 am</p>
+</div>
+</div>
+</body>
+</html>

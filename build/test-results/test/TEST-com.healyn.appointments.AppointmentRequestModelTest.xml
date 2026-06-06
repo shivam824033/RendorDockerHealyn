@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.healyn.appointments.AppointmentRequestModelTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-06-06T05:42:04" hostname="LAPTOP-7J416IAG" time="0.014">
+  <properties/>
+  <testcase name="schedule_assigns_the_time_and_confirms()" classname="com.healyn.appointments.AppointmentRequestModelTest" time="0.004"/>
+  <testcase name="request_factory_creates_an_unscheduled_requested_appointment()" classname="com.healyn.appointments.AppointmentRequestModelTest" time="0.004"/>
+  <testcase name="preferred_time_is_optional_on_a_request()" classname="com.healyn.appointments.AppointmentRequestModelTest" time="0.001"/>
+  <testcase name="scheduled_constructor_derives_requested_date_from_the_instant()" classname="com.healyn.appointments.AppointmentRequestModelTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

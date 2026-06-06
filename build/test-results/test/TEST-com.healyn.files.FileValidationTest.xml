@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.healyn.files.FileValidationTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-06-06T05:43:10" hostname="LAPTOP-7J416IAG" time="0.014">
+  <properties/>
+  <testcase name="from_mime_type_maps_whitelist_and_rejects_others()" classname="com.healyn.files.FileValidationTest" time="0.004"/>
+  <testcase name="sanitize_truncates_to_255_chars()" classname="com.healyn.files.FileValidationTest" time="0.002"/>
+  <testcase name="sanitize_forbids_leading_dots_and_strips_control_chars()" classname="com.healyn.files.FileValidationTest" time="0.001"/>
+  <testcase name="magic_bytes_accept_matching_and_reject_mismatched_content()" classname="com.healyn.files.FileValidationTest" time="0.001"/>
+  <testcase name="usable_filename_rejects_blank()" classname="com.healyn.files.FileValidationTest" time="0.001"/>
+  <testcase name="sanitize_strips_unix_and_windows_path_components()" classname="com.healyn.files.FileValidationTest" time="0.002"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

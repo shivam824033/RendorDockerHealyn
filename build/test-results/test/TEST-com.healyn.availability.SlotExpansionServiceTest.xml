@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.healyn.availability.SlotExpansionServiceTest" tests="11" skipped="0" failures="0" errors="0" timestamp="2026-06-06T05:42:31" hostname="LAPTOP-7J416IAG" time="0.039">
+  <properties/>
+  <testcase name="blackout_fully_containing_window_excludes_everything()" classname="com.healyn.availability.SlotExpansionServiceTest" time="0.004"/>
+  <testcase name="expired_rule_emits_nothing()" classname="com.healyn.availability.SlotExpansionServiceTest" time="0.001"/>
+  <testcase name="simple_rule_expands_to_back_to_back_slots()" classname="com.healyn.availability.SlotExpansionServiceTest" time="0.002"/>
+  <testcase name="multi_day_range_only_emits_matching_weekdays()" classname="com.healyn.availability.SlotExpansionServiceTest" time="0.006"/>
+  <testcase name="future_rule_emits_nothing_inside_window()" classname="com.healyn.availability.SlotExpansionServiceTest" time="0.001"/>
+  <testcase name="booked_ranges_subtract_overlapping_slots()" classname="com.healyn.availability.SlotExpansionServiceTest" time="0.006"/>
+  <testcase name="window_that_does_not_evenly_divide_truncates()" classname="com.healyn.availability.SlotExpansionServiceTest" time="0.002"/>
+  <testcase name="blackout_abutting_slot_does_not_exclude_it()" classname="com.healyn.availability.SlotExpansionServiceTest" time="0.001"/>
+  <testcase name="from_after_to_emits_nothing()" classname="com.healyn.availability.SlotExpansionServiceTest" time="0.001"/>
+  <testcase name="blackout_intersecting_slots_excludes_them()" classname="com.healyn.availability.SlotExpansionServiceTest" time="0.001"/>
+  <testcase name="dst_spring_forward_keeps_each_slot_a_real_30_minutes()" classname="com.healyn.availability.SlotExpansionServiceTest" time="0.004"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

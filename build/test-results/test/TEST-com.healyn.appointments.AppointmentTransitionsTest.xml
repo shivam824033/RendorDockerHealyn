@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.healyn.appointments.AppointmentTransitionsTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-06-06T05:42:04" hostname="LAPTOP-7J416IAG" time="0.023">
+  <properties/>
+  <testcase name="confirmed_allows_start_cancel_noshow_via_transitions()" classname="com.healyn.appointments.AppointmentTransitionsTest" time="0.001"/>
+  <testcase name="terminal_states_reject_everything()" classname="com.healyn.appointments.AppointmentTransitionsTest" time="0.002"/>
+  <testcase name="in_progress_allows_complete_cancel_only()" classname="com.healyn.appointments.AppointmentTransitionsTest" time="0.001"/>
+  <testcase name="requested_allows_cancel_only_via_transitions()" classname="com.healyn.appointments.AppointmentTransitionsTest" time="0.001"/>
+  <testcase name="requireAllowed_throws_conflict_for_invalid_transition()" classname="com.healyn.appointments.AppointmentTransitionsTest" time="0.015"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

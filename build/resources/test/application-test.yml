@@ -1,0 +1,26 @@
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: validate
+  flyway:
+    enabled: true
+
+springdoc:
+  swagger-ui:
+    enabled: false
+  api-docs:
+    enabled: false
+
+logging:
+  level:
+    root: WARN
+    com.healyn: INFO
+
+healyn:
+  notifications:
+    poller-enabled: false
+  password:
+    pepper: test-pepper-not-for-prod-test-pepper-not-for-prod
+  jwt:
+    private-key-path: ""
+    public-key-path: ""

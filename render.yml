@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: healyn-backend
+    runtime: docker
+    plan: free
+
+    envVars:
+      - key: HEALYN_PROFILE
+        value: prod
