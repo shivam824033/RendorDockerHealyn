@@ -3,6 +3,7 @@ package com.healyn;
 import com.healyn.auth.repository.AccountRepository;
 import com.healyn.auth.repository.DeviceSessionRepository;
 import com.healyn.auth.repository.OtpChallengeRepository;
+import com.healyn.appointments.repository.AppointmentEventRepository;
 import com.healyn.appointments.repository.AppointmentRepository;
 import com.healyn.audit.repository.AuditLogRepository;
 import com.healyn.availability.repository.AvailabilityRuleRepository;
@@ -21,6 +22,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
 
 @SpringBootTest(properties = {
@@ -43,6 +45,7 @@ class ApplicationBootSmokeTest {
     @MockBean AvailabilityRuleRepository availabilityRuleRepository;
     @MockBean BlackoutWindowRepository blackoutWindowRepository;
     @MockBean AppointmentRepository appointmentRepository;
+    @MockBean AppointmentEventRepository appointmentEventRepository;
     @MockBean DiscussionMessageRepository discussionMessageRepository;
     @MockBean DiscussionReadMarkerRepository discussionReadMarkerRepository;
     @MockBean DiscussionMessageAttachmentRepository discussionMessageAttachmentRepository;
@@ -53,6 +56,9 @@ class ApplicationBootSmokeTest {
     @MockBean NotificationPreferencesRepository notificationPreferencesRepository;
     @MockBean AuditLogRepository auditLogRepository;
     @MockBean StringRedisTemplate stringRedisTemplate;
+    // DataSource auto-config is excluded above, so the JdbcTemplate that
+    // AppointmentNumberGenerator uses for its counter upsert is mocked like the repositories.
+    @MockBean JdbcTemplate jdbcTemplate;
 
     @Test
     void contextLoads() {

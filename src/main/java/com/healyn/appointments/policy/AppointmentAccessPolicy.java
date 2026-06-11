@@ -20,7 +20,9 @@ public class AppointmentAccessPolicy {
             AppointmentStatus.CONFIRMED,
             AppointmentStatus.IN_PROGRESS,
             AppointmentStatus.COMPLETED,
-            AppointmentStatus.NO_SHOW);
+            AppointmentStatus.NO_SHOW,
+            // Only the physiotherapist declines a request (REQUESTED → REJECTED).
+            AppointmentStatus.REJECTED);
 
     private final PatientAccessPolicy patientAccess;
 

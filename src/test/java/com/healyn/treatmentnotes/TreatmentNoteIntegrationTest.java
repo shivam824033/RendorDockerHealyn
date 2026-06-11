@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.healyn.appointments.domain.Appointment;
 import com.healyn.appointments.repository.AppointmentRepository;
+import com.healyn.appointments.service.AppointmentNumberGenerator;
 import com.healyn.auth.adapter.OtpSender;
 import com.healyn.auth.domain.Account;
 import com.healyn.auth.domain.AccountRole;
@@ -92,6 +93,7 @@ class TreatmentNoteIntegrationTest {
     @Autowired CapturingOtpSender otpSender;
     @Autowired AccountRepository accounts;
     @Autowired AppointmentRepository appointments;
+    @Autowired AppointmentNumberGenerator numbers;
     @Autowired AccessTokenIssuer tokenIssuer;
 
     @BeforeEach
@@ -240,6 +242,7 @@ class TreatmentNoteIntegrationTest {
         Appointment appt = new Appointment(
                 UuidV7.generate(), patientId, actor.id, physio.id, at, (short) 30, "treatment-note seed", null);
         appt.schedule(at, (short) 30, Instant.now());
+        appt.assignNumber(numbers.generate());
         appointments.save(appt);
         return appt.getId();
     }

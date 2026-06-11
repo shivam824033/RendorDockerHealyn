@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.healyn.appointments.domain.Appointment;
 import com.healyn.appointments.repository.AppointmentRepository;
+import com.healyn.appointments.service.AppointmentNumberGenerator;
 import com.healyn.auth.adapter.OtpSender;
 import com.healyn.auth.domain.Account;
 import com.healyn.auth.domain.AccountRole;
@@ -118,6 +119,7 @@ class FileIntegrationTest {
     @Autowired InMemoryFileStore fileStore;
     @Autowired AccountRepository accounts;
     @Autowired AppointmentRepository appointments;
+    @Autowired AppointmentNumberGenerator numbers;
     @Autowired FileObjectRepository files;
     @Autowired AccessTokenIssuer tokenIssuer;
 
@@ -263,6 +265,7 @@ class FileIntegrationTest {
         Appointment appt = new Appointment(
                 UuidV7.generate(), patientId, actor.id, physio.id,
                 Instant.parse(nextSlot()), (short) 30, "file seed", null);
+        appt.assignNumber(numbers.generate());
         appointments.save(appt);
         return appt.getId();
     }

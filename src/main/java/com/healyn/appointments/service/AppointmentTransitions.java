@@ -20,7 +20,8 @@ public final class AppointmentTransitions {
     // and marks the old one RESCHEDULED itself (APPOINTMENT_FLOW §3.1).
     static {
         ALLOWED.put(AppointmentStatus.REQUESTED, EnumSet.of(
-                AppointmentStatus.CANCELLED));
+                AppointmentStatus.CANCELLED,
+                AppointmentStatus.REJECTED));
         ALLOWED.put(AppointmentStatus.CONFIRMED, EnumSet.of(
                 AppointmentStatus.IN_PROGRESS,
                 AppointmentStatus.CANCELLED,
@@ -32,6 +33,7 @@ public final class AppointmentTransitions {
         ALLOWED.put(AppointmentStatus.CANCELLED, EnumSet.noneOf(AppointmentStatus.class));
         ALLOWED.put(AppointmentStatus.NO_SHOW, EnumSet.noneOf(AppointmentStatus.class));
         ALLOWED.put(AppointmentStatus.RESCHEDULED, EnumSet.noneOf(AppointmentStatus.class));
+        ALLOWED.put(AppointmentStatus.REJECTED, EnumSet.noneOf(AppointmentStatus.class));
     }
 
     private AppointmentTransitions() {}

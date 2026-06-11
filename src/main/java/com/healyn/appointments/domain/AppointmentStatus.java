@@ -7,9 +7,13 @@ public enum AppointmentStatus {
     COMPLETED,
     CANCELLED,
     NO_SHOW,
-    RESCHEDULED;
+    RESCHEDULED,
+    /// The physiotherapist declined a request before it was ever scheduled (REQUESTED →
+    /// REJECTED). A first-class terminal state, distinct from a cancellation.
+    REJECTED;
 
     public boolean isTerminal() {
-        return this == COMPLETED || this == CANCELLED || this == NO_SHOW || this == RESCHEDULED;
+        return this == COMPLETED || this == CANCELLED || this == NO_SHOW
+                || this == RESCHEDULED || this == REJECTED;
     }
 }

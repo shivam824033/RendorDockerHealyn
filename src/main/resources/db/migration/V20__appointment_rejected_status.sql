@@ -1,0 +1,15 @@
+-- Healyn V20: REJECTED appointment status (first-class request rejection).
+-- Reference: docs/APPOINTMENT_FLOW.md §3.1, docs/FEATURE_ROADMAP.md "Identifiers & lifecycle note".
+--
+-- Until now a physiotherapist "rejecting" a REQUESTED request was modelled as a CANCELLED
+-- row, indistinguishable from a real cancellation. REJECTED makes a declined request a
+-- distinct, first-class terminal state (REQUESTED → REJECTED, physio-only) so it can be a
+-- meaningful filter. The matching appointment_event_type value was pre-created in V19, so no
+-- second event-enum migration is needed.
+--
+-- Additive only (hard rule #8): a new enum value, nothing dropped. No backfill — historical
+-- physio cancellations of requests are not distinguishable from genuine cancellations, so
+-- they keep their CANCELLED status. Postgres only forbids *using* a freshly-added enum value
+-- in the same transaction; this migration merely adds it (never references it), so it is safe
+-- inside Flyway's per-migration transaction on PG 12+.
+ALTER TYPE appointment_status ADD VALUE IF NOT EXISTS 'REJECTED';

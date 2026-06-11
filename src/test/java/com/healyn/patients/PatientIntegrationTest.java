@@ -121,6 +121,26 @@ class PatientIntegrationTest {
     }
 
     @Test
+    void patients_have_distinct_human_friendly_numbers() throws Exception {
+        Session s = register("heidi");
+        createFamilyMember(s, "Heidi Jr", "2019-03-03", "FEMALE", "CHILD");
+
+        MvcResult res = mvc.perform(get("/patients").header("Authorization", "Bearer " + s.access))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        JsonNode patients = json.readTree(res.getResponse().getContentAsByteArray()).get("patients");
+        assertThat(patients).hasSize(2);
+        java.util.Set<String> numbers = new java.util.HashSet<>();
+        for (JsonNode p : patients) {
+            String number = p.get("patient_number").asText();
+            assertThat(number).as("human-friendly id format").matches("PAT-\\d+");
+            numbers.add(number);
+        }
+        assertThat(numbers).as("each patient has a distinct PAT- number").hasSize(2);
+    }
+
+    @Test
     void patch_updates_fields_on_managed_patient() throws Exception {
         Session s = register("carol");
         UUID child = createFamilyMember(s, "Carol Jr", "2018-06-01", "FEMALE", "CHILD");

@@ -15,10 +15,12 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 class AppointmentTransitionsTest {
 
     @Test
-    void requested_allows_cancel_only_via_transitions() {
+    void requested_allows_cancel_or_reject_via_transitions() {
         // REQUESTED→CONFIRMED is rerouted to /schedule; RESCHEDULED goes through /reschedule.
+        // A physio may also REJECT a request (declined before it is ever scheduled).
         assertAllowed(AppointmentStatus.REQUESTED, EnumSet.of(
-                AppointmentStatus.CANCELLED));
+                AppointmentStatus.CANCELLED,
+                AppointmentStatus.REJECTED));
     }
 
     @Test
@@ -43,7 +45,8 @@ class AppointmentTransitionsTest {
                 AppointmentStatus.COMPLETED,
                 AppointmentStatus.CANCELLED,
                 AppointmentStatus.NO_SHOW,
-                AppointmentStatus.RESCHEDULED)) {
+                AppointmentStatus.RESCHEDULED,
+                AppointmentStatus.REJECTED)) {
             for (AppointmentStatus to : AppointmentStatus.values()) {
                 assertThat(AppointmentTransitions.isAllowed(terminal, to))
                         .as("%s -> %s must be denied", terminal, to)

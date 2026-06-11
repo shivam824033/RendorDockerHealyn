@@ -13,6 +13,7 @@ final class PatientMapper {
         AccountPatient link = pl.link();
         return new PatientDtos.PatientView(
                 p.getId(),
+                p.getPatientNumber(),
                 p.getFullName(),
                 p.getDateOfBirth(),
                 p.getSex(),

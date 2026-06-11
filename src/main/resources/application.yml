@@ -73,6 +73,10 @@ springdoc:
   show-actuator: false
 
 healyn:
+  # Single-clinic reference frame (Phase 1). Used to derive clinic-local calendar days,
+  # e.g. the YYYYMMDD stem of an Appointment Number. Instants are still stored as UTC.
+  clinic:
+    timezone: ${HEALYN_CLINIC_TIMEZONE:Asia/Kolkata}
   s3:
     endpoint: ${HEALYN_S3_ENDPOINT:http://localhost:9000}
     # Host put into presigned upload/download URLs (the one the device reaches);

@@ -6,7 +6,9 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Table;
+import org.hibernate.annotations.Generated;
 import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.generator.EventType;
 import org.hibernate.type.SqlTypes;
 
 import java.time.Instant;
@@ -16,6 +18,14 @@ import java.util.UUID;
 @Entity
 @Table(name = "patients")
 public class Patient extends BaseEntity {
+
+    /// Human-friendly business identifier (e.g. PAT-100001), assigned once by the DB
+    /// sequence at insert and never changed. The UUID {@code id} remains the technical
+    /// primary key and is never exposed to users. insertable/updatable=false: the column
+    /// DEFAULT owns the value and @Generated reads it back after insert.
+    @Generated(event = EventType.INSERT)
+    @Column(name = "patient_number", insertable = false, updatable = false)
+    private String patientNumber;
 
     @Column(name = "full_name", nullable = false, length = 160)
     private String fullName;
@@ -55,6 +65,7 @@ public class Patient extends BaseEntity {
         if (sex != null) this.sex = sex;
     }
 
+    public String getPatientNumber() { return patientNumber; }
     public String getFullName() { return fullName; }
     public LocalDate getDateOfBirth() { return dateOfBirth; }
     public PatientSex getSex() { return sex; }

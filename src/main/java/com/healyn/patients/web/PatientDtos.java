@@ -46,6 +46,7 @@ public final class PatientDtos {
 
     public record PatientView(
             UUID id,
+            String patientNumber,
             String fullName,
             LocalDate dateOfBirth,
             PatientSex sex,
