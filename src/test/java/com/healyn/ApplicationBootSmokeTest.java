@@ -15,6 +15,7 @@ import com.healyn.files.repository.FileObjectRepository;
 import com.healyn.notifications.repository.FcmTokenRepository;
 import com.healyn.notifications.repository.NotificationOutboxRepository;
 import com.healyn.notifications.repository.NotificationPreferencesRepository;
+import com.healyn.patients.repository.AccountAddressRepository;
 import com.healyn.patients.repository.AccountPatientRepository;
 import com.healyn.patients.repository.PatientRepository;
 import com.healyn.treatmentnotes.repository.TreatmentNoteRepository;
@@ -42,6 +43,7 @@ class ApplicationBootSmokeTest {
     @MockBean OtpChallengeRepository otpChallengeRepository;
     @MockBean PatientRepository patientRepository;
     @MockBean AccountPatientRepository accountPatientRepository;
+    @MockBean AccountAddressRepository accountAddressRepository;
     @MockBean AvailabilityRuleRepository availabilityRuleRepository;
     @MockBean BlackoutWindowRepository blackoutWindowRepository;
     @MockBean AppointmentRepository appointmentRepository;

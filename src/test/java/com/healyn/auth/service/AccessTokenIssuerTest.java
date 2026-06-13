@@ -13,6 +13,7 @@ import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -43,15 +44,17 @@ class AccessTokenIssuerTest {
 
         Account account = new Account(UuidV7.generate(), "u@x.com", null,
                 "hash", new byte[]{1, 2}, AccountRole.ROLE_ACCOUNT);
+        UUID sessionId = UuidV7.generate();
 
         AccessTokenIssuer issuer = new AccessTokenIssuer(props, keys);
-        AccessTokenIssuer.Issued issued = issuer.issue(account);
+        AccessTokenIssuer.Issued issued = issuer.issue(account, sessionId);
 
         SignedJWT jwt = SignedJWT.parse(issued.token());
         assertThat(jwt.verify(new RSASSAVerifier(publicKey))).isTrue();
         assertThat(jwt.getJWTClaimsSet().getIssuer()).isEqualTo("healyn-test");
         assertThat(jwt.getJWTClaimsSet().getAudience()).containsExactly("healyn-mobile");
         assertThat(jwt.getJWTClaimsSet().getSubject()).isEqualTo(account.getId().toString());
+        assertThat(jwt.getJWTClaimsSet().getStringClaim("sid")).isEqualTo(sessionId.toString());
         assertThat(jwt.getJWTClaimsSet().getStringClaim("role")).isEqualTo("ROLE_ACCOUNT");
         assertThat(jwt.getJWTClaimsSet().getIntegerClaim("ver")).isEqualTo(1);
         assertThat(jwt.getJWTClaimsSet().getJWTID()).isEqualTo(issued.jti());

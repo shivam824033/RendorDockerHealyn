@@ -27,4 +27,11 @@ public final class TreatmentNoteDtos {
             Instant updatedAt) {}
 
     public record TreatmentNotePage(List<TreatmentNoteView> items, String nextCursor) {}
+
+    /// Ask which of these appointments already have a treatment note (physio dashboard aid).
+    public record NoteStatusRequest(List<UUID> appointmentIds) {}
+
+    /// The subset of the requested appointment ids that have a note. Anything not listed
+    /// still needs one written.
+    public record NoteStatusResponse(List<UUID> withNotes) {}
 }

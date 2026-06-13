@@ -13,6 +13,7 @@ import org.springframework.stereotype.Component;
 
 import java.time.Instant;
 import java.util.Date;
+import java.util.UUID;
 
 @Component
 public class AccessTokenIssuer {
@@ -25,7 +26,11 @@ public class AccessTokenIssuer {
         this.keys = keys;
     }
 
-    public Issued issue(Account account) {
+    /// Issues an access token bound to a device session via the {@code sid} claim.
+    /// The resource server rejects the token the moment that session is revoked
+    /// (see {@link JwtBlacklist#isSessionRevoked}), so a signed-out device loses
+    /// access within the token's short TTL even before it expires.
+    public Issued issue(Account account, UUID sessionId) {
         Instant now = Instant.now();
         Instant exp = now.plusSeconds(props.accessTokenTtlSeconds());
         String jti = UuidV7.generate().toString();
@@ -37,6 +42,7 @@ public class AccessTokenIssuer {
                 .issueTime(Date.from(now))
                 .expirationTime(Date.from(exp))
                 .jwtID(jti)
+                .claim("sid", sessionId.toString())
                 .claim("role", account.getRole().name())
                 .claim("ver", 1)
                 .build();

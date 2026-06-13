@@ -24,15 +24,22 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 @Service
 public class TreatmentNoteService {
 
     static final int MAX_FIELD_LENGTH = 8000;
+
+    /// Upper bound on a single note-status lookup, so the IN-list stays small. The
+    /// physiotherapist's list pages well under this; a larger ask is a client bug.
+    static final int MAX_STATUS_IDS = 200;
 
     private final TreatmentNoteRepository notes;
     private final AppointmentRepository appointments;
@@ -121,6 +128,20 @@ public class TreatmentNoteService {
             rows = rows.subList(0, limit);
         }
         return new CursorPage<>(new ArrayList<>(rows), nextCursor);
+    }
+
+    /// Of the given appointments, which already have a treatment note. Physiotherapist
+    /// only (a dashboard aid). Returns a set so the caller can flag "note pending" on
+    /// the rest; never throws on unknown ids — they simply aren't in the result.
+    @Transactional(readOnly = true)
+    public Set<UUID> appointmentsWithNotes(AccountRole role, Collection<UUID> appointmentIds) {
+        access.requireStatusRead(role);
+        if (appointmentIds == null || appointmentIds.isEmpty()) return Set.of();
+        if (appointmentIds.size() > MAX_STATUS_IDS) {
+            throw new UnprocessableException(ErrorCode.UNPROCESSABLE,
+                    "Too many appointment ids (max " + MAX_STATUS_IDS + ")");
+        }
+        return new HashSet<>(notes.appointmentIdsWithNotes(appointmentIds));
     }
 
     // ---- helpers ----

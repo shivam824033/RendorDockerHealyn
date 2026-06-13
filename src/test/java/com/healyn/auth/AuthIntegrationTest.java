@@ -120,6 +120,48 @@ class AuthIntegrationTest {
     }
 
     @Test
+    void signing_out_a_device_immediately_invalidates_its_access_token() throws Exception {
+        String email = "grace+" + UUID.randomUUID() + "@example.com";
+        registerAndComplete(email, "valid-password-7");
+
+        // Device A and device B both sign in for the same account.
+        Map<String, Object> deviceA = login(email, "valid-password-7", "dev-A", "Phone A");
+        Map<String, Object> deviceB = login(email, "valid-password-7", "dev-B", "Phone B");
+        String accessA = (String) deviceA.get("access_token");
+        String accessB = (String) deviceB.get("access_token");
+
+        // Both can call an authenticated endpoint to start with.
+        mvc.perform(get("/auth/sessions").header("Authorization", "Bearer " + accessA))
+                .andExpect(status().isOk());
+        mvc.perform(get("/auth/sessions").header("Authorization", "Bearer " + accessB))
+                .andExpect(status().isOk());
+
+        // Device A signs device B out of the "Signed-in devices" list.
+        mvc.perform(delete("/auth/sessions/" + deviceB.get("session_id"))
+                        .header("Authorization", "Bearer " + accessA))
+                .andExpect(status().isNoContent());
+
+        // Device B's *access token* is now rejected (not just its refresh token) — the
+        // crux of issue 2: revocation is no longer cosmetic.
+        mvc.perform(get("/auth/sessions").header("Authorization", "Bearer " + accessB))
+                .andExpect(status().isUnauthorized());
+
+        // Device B cannot recover by refreshing either — its session is gone.
+        mvc.perform(post("/auth/refresh")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json.writeValueAsBytes(Map.of("refresh_token", deviceB.get("refresh_token")))))
+                .andExpect(status().isUnauthorized());
+
+        // ...and device A is untouched: signing out one device must not sign out the others.
+        mvc.perform(get("/auth/sessions").header("Authorization", "Bearer " + accessA))
+                .andExpect(status().isOk());
+        mvc.perform(post("/auth/refresh")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json.writeValueAsBytes(Map.of("refresh_token", deviceA.get("refresh_token")))))
+                .andExpect(status().isOk());
+    }
+
+    @Test
     void five_failed_logins_lock_the_account() throws Exception {
         String email = "bob+" + UUID.randomUUID() + "@example.com";
         registerAndComplete(email, "valid-password-1");
@@ -193,8 +235,34 @@ class AuthIntegrationTest {
                                 "code", "000000",
                                 "password", "valid-password-3",
                                 "device", deviceBody(),
-                                "profile", profileBody()))))
+                                "profile", profileBody(),
+                                "address", addressBody()))))
                 .andExpect(status().isUnprocessableEntity());
+    }
+
+    @Test
+    void register_complete_without_address_returns_400() throws Exception {
+        String email = "noaddr+" + UUID.randomUUID() + "@example.com";
+        Map<String, Object> startResp = body(mvc.perform(post("/auth/register/start")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json.writeValueAsBytes(Map.of("target", Map.of("email", email)))))
+                .andExpect(status().isAccepted())
+                .andReturn());
+        String code = otpSender.latestByTarget.get(email);
+        assertThat(code).isNotNull();
+
+        Map<String, Object> body = new HashMap<>();
+        body.put("challenge_id", startResp.get("challenge_id"));
+        body.put("code", code);
+        body.put("password", "valid-password-9");
+        body.put("device", deviceBody());
+        body.put("profile", profileBody());
+        // address deliberately omitted — it is required at signup.
+
+        mvc.perform(post("/auth/register/complete")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json.writeValueAsBytes(body)))
+                .andExpect(status().isBadRequest());
     }
 
     @Test
@@ -227,10 +295,23 @@ class AuthIntegrationTest {
         body.put("password", password);
         body.put("device", deviceBody());
         body.put("profile", profileBody());
+        body.put("address", addressBody());
 
         return body(mvc.perform(post("/auth/register/complete")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json.writeValueAsBytes(body)))
+                .andExpect(status().isOk())
+                .andReturn());
+    }
+
+    private Map<String, Object> login(String email, String password, String deviceId, String deviceLabel)
+            throws Exception {
+        return body(mvc.perform(post("/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json.writeValueAsBytes(Map.of(
+                                "email_or_phone", email,
+                                "password", password,
+                                "device", Map.of("device_id", deviceId, "device_label", deviceLabel)))))
                 .andExpect(status().isOk())
                 .andReturn());
     }
@@ -244,6 +325,15 @@ class AuthIntegrationTest {
                 "full_name", "Test Person",
                 "date_of_birth", "1990-01-15",
                 "sex", "UNDISCLOSED");
+    }
+
+    private static Map<String, Object> addressBody() {
+        return Map.of(
+                "line1", "1 Test Street",
+                "city", "Pune",
+                "state", "Maharashtra",
+                "postal_code", "411001",
+                "country", "India");
     }
 
     private Map<String, Object> body(MvcResult result) throws Exception {

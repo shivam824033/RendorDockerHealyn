@@ -16,6 +16,9 @@ import com.healyn.discussion.domain.DiscussionMessage;
 import com.healyn.discussion.domain.DiscussionMessageType;
 import com.healyn.discussion.domain.DiscussionSenderRole;
 import com.healyn.discussion.repository.DiscussionMessageRepository;
+import com.healyn.notifications.domain.NotificationKind;
+import com.healyn.notifications.domain.NotificationOutbox;
+import com.healyn.notifications.repository.NotificationOutboxRepository;
 import com.redis.testcontainers.RedisContainer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -100,6 +103,7 @@ class DiscussionIntegrationTest {
     @Autowired AppointmentNumberGenerator numbers;
     @Autowired DiscussionMessageRepository messages;
     @Autowired AccessTokenIssuer tokenIssuer;
+    @Autowired NotificationOutboxRepository outbox;
 
     @BeforeEach
     void reset() {
@@ -118,6 +122,29 @@ class DiscussionIntegrationTest {
                 .andExpect(jsonPath("$.items[0].body").value("Hi, what should I do?"))
                 .andExpect(jsonPath("$.items[0].sender_role").value("PATIENT_SIDE"))
                 .andExpect(jsonPath("$.items[0].message_type").value("QUESTION"));
+    }
+
+    @Test
+    void new_message_notification_payload_carries_ids_and_appointment_number_but_no_body() throws Exception {
+        // A new patient message notifies the physiotherapist. The payload carries IDs only
+        // (CLAUDE.md Hard Rule #4) — appointmentId, messageId, and the human-friendly
+        // appointmentNumber (a business id) — and never the message body, which is PHI.
+        Fixture f = bootstrap("priya");
+        String msgId = postMessage(f.account, f.apptId, "Can we reschedule?", DiscussionMessageType.QUESTION);
+        String number = appointments.findById(f.apptId).orElseThrow().getAppointmentNumber();
+
+        NotificationOutbox row = outbox.findByCorrelationIdOrderByCreatedAtAsc(UUID.fromString(msgId)).stream()
+                .filter(o -> o.getKind() == NotificationKind.DISCUSSION_NEW_MESSAGE)
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("no DISCUSSION_NEW_MESSAGE row enqueued"));
+
+        assertThat(row.getPayload())
+                .containsEntry("appointmentId", f.apptId.toString())
+                .containsEntry("messageId", msgId)
+                .containsEntry("appointmentNumber", number);
+        assertThat(row.getPayload().keySet())
+                .containsExactlyInAnyOrder("appointmentId", "messageId", "appointmentNumber");
+        assertThat(row.getPayload().values()).doesNotContain("Can we reschedule?");
     }
 
     @Test
@@ -306,7 +333,7 @@ class DiscussionIntegrationTest {
                 "$argon2id$placeholder$noop", new byte[]{0},
                 AccountRole.ROLE_PHYSIO);
         accounts.save(physio);
-        String token = tokenIssuer.issue(physio).token();
+        String token = tokenIssuer.issue(physio, java.util.UUID.randomUUID()).token();
         return new Session(physio.getId(), token);
     }
 
@@ -331,6 +358,12 @@ class DiscussionIntegrationTest {
                 "full_name", tag + " Person",
                 "date_of_birth", "1991-05-20",
                 "sex", "UNDISCLOSED"));
+        body.put("address", Map.of(
+                "line1", "1 Test Street",
+                "city", "Pune",
+                "state", "Maharashtra",
+                "postal_code", "411001",
+                "country", "India"));
 
         MvcResult tokensRes = mvc.perform(post("/auth/register/complete")
                         .contentType(MediaType.APPLICATION_JSON)

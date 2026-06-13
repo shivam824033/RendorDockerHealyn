@@ -144,7 +144,7 @@ public class AppointmentService {
         events.recordCreated(saved, actorId, role, Instant.now(clock));
         idempotency.store(actorId, idempotencyKey, saved.getId());
         notifications.enqueueToAccount(NotificationKind.BOOKING_REQUESTED, saved.getPhysiotherapistId(),
-                Map.of("appointmentId", saved.getId().toString()), saved.getId());
+                payload(saved), saved.getId());
         audit.record(AuditAction.CREATE, actorId, role, AuditResource.APPOINTMENT, saved.getId(),
                 Map.of("patientId", saved.getPatientId().toString()));
         return saved;
@@ -523,8 +523,16 @@ public class AppointmentService {
                 source.getAppointmentNumber(), AppointmentChildKind.FOLLOW_UP, priorFollowUps));
     }
 
+    /// Notification payload for an appointment — IDs only (CLAUDE.md Hard Rule #4). The
+    /// human-friendly {@code appointmentNumber} (a business identifier, not PHI) is included when
+    /// present so the client can show it without a fetch; legacy rows without one fall back to a
+    /// generic message client-side.
     private static Map<String, String> payload(Appointment appt) {
-        return Map.of("appointmentId", appt.getId().toString());
+        return appt.getAppointmentNumber() == null
+                ? Map.of("appointmentId", appt.getId().toString())
+                : Map.of(
+                        "appointmentId", appt.getId().toString(),
+                        "appointmentNumber", appt.getAppointmentNumber());
     }
 
     private UUID resolvePhysioId() {

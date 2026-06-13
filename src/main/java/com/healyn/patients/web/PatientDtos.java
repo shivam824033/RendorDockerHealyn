@@ -18,6 +18,28 @@ public final class PatientDtos {
 
     private PatientDtos() {}
 
+    /// Household postal address as sent by the client. Shared by registration
+    /// (docs/API_STANDARDS.md §9.1) and `PUT /account/address` (§9.2). [line2] is
+    /// optional; [country] defaults to "India" server-side when blank.
+    public record AddressRequest(
+            @NotBlank @Size(max = 160) String line1,
+            @Size(max = 160) String line2,
+            @NotBlank @Size(max = 80) String city,
+            @NotBlank @Size(max = 80) String state,
+            @NotBlank @Size(max = 16) String postalCode,
+            @Size(max = 60) String country) {}
+
+    public record AddressView(
+            String line1,
+            String line2,
+            String city,
+            String state,
+            String postalCode,
+            String country) {}
+
+    /// `GET /account/address` — [address] is null when the household has none set.
+    public record AccountAddressResponse(AddressView address) {}
+
     public record PrimaryProfileRequest(
             @NotBlank @Size(max = 160) String fullName,
             @NotNull @Past LocalDate dateOfBirth,
@@ -55,6 +77,7 @@ public final class PatientDtos {
             String bloodGroup,
             String allergies,
             String notes,
+            AddressView address,
             PatientRelationship relationship,
             Boolean primary,
             Boolean canManage,

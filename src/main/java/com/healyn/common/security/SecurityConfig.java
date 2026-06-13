@@ -84,9 +84,16 @@ public class SecurityConfig {
     }
 
     private static OAuth2TokenValidator<org.springframework.security.oauth2.jwt.Jwt> notRevoked(JwtBlacklist blacklist) {
-        return jwt -> blacklist.isRevoked(jwt.getId())
-                ? OAuth2TokenValidatorResult.failure(new OAuth2Error("token_revoked", "Token has been revoked", null))
-                : OAuth2TokenValidatorResult.success();
+        OAuth2Error revoked = new OAuth2Error("token_revoked", "Token has been revoked", null);
+        return jwt -> {
+            // Reject a single revoked token (jti) or one whose device session has been
+            // signed out / revoked (sid) — the latter invalidates a device immediately,
+            // not just at the access token's natural expiry.
+            String sid = jwt.getClaimAsString("sid");
+            boolean blocked = blacklist.isRevoked(jwt.getId())
+                    || (sid != null && blacklist.isSessionRevoked(sid));
+            return blocked ? OAuth2TokenValidatorResult.failure(revoked) : OAuth2TokenValidatorResult.success();
+        };
     }
 
     private static JwtAuthenticationConverter jwtAuthConverter() {

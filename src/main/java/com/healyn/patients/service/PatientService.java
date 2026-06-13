@@ -6,6 +6,7 @@ import com.healyn.common.error.ErrorCode;
 import com.healyn.common.error.NotFoundException;
 import com.healyn.common.error.UnprocessableException;
 import com.healyn.common.id.UuidV7;
+import com.healyn.patients.domain.AccountAddress;
 import com.healyn.patients.domain.AccountPatient;
 import com.healyn.patients.domain.Patient;
 import com.healyn.patients.domain.PatientRelationship;
@@ -18,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -26,12 +28,14 @@ public class PatientService {
     private final PatientRepository patients;
     private final AccountPatientRepository links;
     private final PatientAccessPolicy policy;
+    private final AccountAddressService addresses;
 
     public PatientService(PatientRepository patients, AccountPatientRepository links,
-                          PatientAccessPolicy policy) {
+                          PatientAccessPolicy policy, AccountAddressService addresses) {
         this.patients = patients;
         this.links = links;
         this.policy = policy;
+        this.addresses = addresses;
     }
 
     @Transactional
@@ -59,13 +63,22 @@ public class PatientService {
     @Transactional(readOnly = true)
     public List<PatientWithLink> listForAccount(UUID accountId, AccountRole role) {
         if (role == AccountRole.ROLE_PHYSIO) {
-            return patients.findAll().stream()
+            List<Patient> live = patients.findAll().stream()
                     .filter(p -> p.getDeletedAt() == null)
-                    .map(p -> new PatientWithLink(p, null))
+                    .toList();
+            // The physiotherapist sees each patient's household address resolved
+            // through its managing account — batched to one query for the roster.
+            Map<UUID, AccountAddress> byPatient = addresses.findForPatients(
+                    live.stream().map(Patient::getId).toList());
+            return live.stream()
+                    .map(p -> new PatientWithLink(p, null, byPatient.get(p.getId())))
                     .toList();
         }
+        // Patient side: every patient on the account shares the account's own
+        // household address — resolved once, not per patient.
+        AccountAddress household = addresses.findForAccount(accountId).orElse(null);
         return links.findActivePatientsForAccount(accountId).stream()
-                .map(p -> new PatientWithLink(p, links.findLink(accountId, p.getId()).orElse(null)))
+                .map(p -> new PatientWithLink(p, links.findLink(accountId, p.getId()).orElse(null), household))
                 .toList();
     }
 
@@ -73,10 +86,11 @@ public class PatientService {
     public PatientWithLink get(UUID accountId, AccountRole role, UUID patientId) {
         policy.requireAccess(accountId, role, patientId, AccessMode.READ);
         Patient patient = loadAlive(patientId);
-        AccountPatient link = role == AccountRole.ROLE_PHYSIO
-                ? null
-                : links.findLink(accountId, patientId).orElse(null);
-        return new PatientWithLink(patient, link);
+        if (role == AccountRole.ROLE_PHYSIO) {
+            return new PatientWithLink(patient, null, addresses.findForPatient(patientId).orElse(null));
+        }
+        AccountPatient link = links.findLink(accountId, patientId).orElse(null);
+        return new PatientWithLink(patient, link, addresses.findForAccount(accountId).orElse(null));
     }
 
     @Transactional
@@ -132,5 +146,7 @@ public class PatientService {
         return (s == null || s.isBlank()) ? null : s;
     }
 
-    public record PatientWithLink(Patient patient, AccountPatient link) {}
+    /// A patient with the caller's link to it (null for the physiotherapist) and
+    /// the household address surfaced on the profile (null when unset).
+    public record PatientWithLink(Patient patient, AccountPatient link, AccountAddress address) {}
 }

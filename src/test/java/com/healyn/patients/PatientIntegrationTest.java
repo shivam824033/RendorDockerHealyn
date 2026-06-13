@@ -35,6 +35,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -202,6 +203,80 @@ class PatientIntegrationTest {
                 .andExpect(status().isForbidden());
     }
 
+    @Test
+    void registration_captures_household_address_on_primary_patient() throws Exception {
+        Session s = register("ivan");
+        mvc.perform(get("/patients").header("Authorization", "Bearer " + s.access))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.patients[0].address.line1").value("1 Test Street"))
+                .andExpect(jsonPath("$.patients[0].address.city").value("Pune"))
+                .andExpect(jsonPath("$.patients[0].address.state").value("Maharashtra"))
+                .andExpect(jsonPath("$.patients[0].address.postal_code").value("411001"))
+                .andExpect(jsonPath("$.patients[0].address.country").value("India"));
+    }
+
+    @Test
+    void family_member_shares_the_account_household_address() throws Exception {
+        Session s = register("judy");
+        createFamilyMember(s, "Judy Jr", "2016-07-07", "FEMALE", "CHILD");
+
+        MvcResult res = mvc.perform(get("/patients").header("Authorization", "Bearer " + s.access))
+                .andExpect(status().isOk())
+                .andReturn();
+        JsonNode patients = json.readTree(res.getResponse().getContentAsByteArray()).get("patients");
+        assertThat(patients).hasSize(2);
+        for (JsonNode p : patients) {
+            assertThat(p.get("address").get("line1").asText()).isEqualTo("1 Test Street");
+            assertThat(p.get("address").get("postal_code").asText()).isEqualTo("411001");
+        }
+    }
+
+    @Test
+    void get_account_address_returns_the_household_address() throws Exception {
+        Session s = register("kevin");
+        mvc.perform(get("/account/address").header("Authorization", "Bearer " + s.access))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.address.line1").value("1 Test Street"))
+                .andExpect(jsonPath("$.address.city").value("Pune"));
+    }
+
+    @Test
+    void put_account_address_updates_the_household_for_every_patient() throws Exception {
+        Session s = register("laura");
+        UUID child = createFamilyMember(s, "Laura Jr", "2014-02-02", "OTHER", "CHILD");
+
+        mvc.perform(put("/account/address")
+                        .header("Authorization", "Bearer " + s.access)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json.writeValueAsString(Map.of(
+                                "line1", "42 New Road",
+                                "line2", "Flat 3",
+                                "city", "Mumbai",
+                                "state", "Maharashtra",
+                                "postal_code", "400001",
+                                "country", "India"))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.line1").value("42 New Road"))
+                .andExpect(jsonPath("$.line2").value("Flat 3"));
+
+        // The move is reflected on the family member's view too (one shared household).
+        mvc.perform(get("/patients/" + child).header("Authorization", "Bearer " + s.access))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.address.line1").value("42 New Road"))
+                .andExpect(jsonPath("$.address.city").value("Mumbai"));
+    }
+
+    @Test
+    void put_account_address_rejects_missing_required_fields() throws Exception {
+        Session s = register("mallory");
+        mvc.perform(put("/account/address")
+                        .header("Authorization", "Bearer " + s.access)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json.writeValueAsString(Map.of("line1", "Only line one"))))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error.code").value("common.validation_failed"));
+    }
+
     private UUID createFamilyMember(Session s, String name, String dob, String sex, String rel) throws Exception {
         Map<String, Object> resp = body(mvc.perform(post("/patients")
                         .header("Authorization", "Bearer " + s.access)
@@ -235,6 +310,12 @@ class PatientIntegrationTest {
                 "full_name", prefix + " Person",
                 "date_of_birth", "1991-05-20",
                 "sex", "UNDISCLOSED"));
+        body.put("address", Map.of(
+                "line1", "1 Test Street",
+                "city", "Pune",
+                "state", "Maharashtra",
+                "postal_code", "411001",
+                "country", "India"));
 
         Map<String, Object> tokens = body(mvc.perform(post("/auth/register/complete")
                         .contentType(MediaType.APPLICATION_JSON)

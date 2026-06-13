@@ -31,8 +31,8 @@ class FlywayMigrationTest {
 
         // Pins the latest migration version as a tripwire — bump it with every new migration.
         MigrationInfo current = flyway.info().current();
-        assertThat(current.getVersion().getVersion()).isEqualTo("21");
-        assertThat(flyway.info().applied()).hasSizeGreaterThanOrEqualTo(21);
+        assertThat(current.getVersion().getVersion()).isEqualTo("23");
+        assertThat(flyway.info().applied()).hasSizeGreaterThanOrEqualTo(23);
 
         DataSource ds = flyway.getConfiguration().getDataSource();
         try (Connection c = ds.getConnection(); Statement st = c.createStatement()) {
@@ -154,6 +154,15 @@ class FlywayMigrationTest {
             try (ResultSet rs = st.executeQuery(
                     "select 1 from pg_indexes where indexname = 'idx_patients_number_pattern'")) {
                 assertThat(rs.next()).as("patient_number prefix-scan index").isTrue();
+            }
+            // V23: the per-account household address table (account_id is its PK / FK).
+            try (ResultSet rs = st.executeQuery(
+                    "select 1 from pg_tables where tablename = 'account_addresses'")) {
+                assertThat(rs.next()).as("account_addresses table exists").isTrue();
+            }
+            try (ResultSet rs = st.executeQuery(
+                    "select 1 from pg_constraint where conname = 'account_addresses_pkey' and contype = 'p'")) {
+                assertThat(rs.next()).as("account_addresses primary key (account_id)").isTrue();
             }
         }
     }

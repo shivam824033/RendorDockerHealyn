@@ -1,7 +1,9 @@
 package com.healyn.patients.web;
 
 import com.healyn.auth.domain.AccountRole;
+import com.healyn.patients.domain.AccountAddress;
 import com.healyn.patients.repository.AccountPatientRepository;
+import com.healyn.patients.service.AccountAddressService;
 import com.healyn.patients.service.NewPatientProfile;
 import com.healyn.patients.service.PatientService;
 import com.healyn.patients.service.PatientService.PatientWithLink;
@@ -29,10 +31,13 @@ public class PatientController {
 
     private final PatientService patientService;
     private final AccountPatientRepository links;
+    private final AccountAddressService addresses;
 
-    public PatientController(PatientService patientService, AccountPatientRepository links) {
+    public PatientController(PatientService patientService, AccountPatientRepository links,
+                             AccountAddressService addresses) {
         this.patientService = patientService;
         this.links = links;
+        this.addresses = addresses;
     }
 
     @GetMapping
@@ -55,7 +60,8 @@ public class PatientController {
                 body.phoneE164(), body.email(), body.bloodGroup(), body.allergies(), body.notes());
         var patient = patientService.addFamilyMember(accountId, body.relationship(), profile);
         var link = links.findLink(accountId, patient.getId()).orElseThrow();
-        return PatientMapper.toView(new PatientWithLink(patient, link));
+        AccountAddress household = addresses.findForAccount(accountId).orElse(null);
+        return PatientMapper.toView(new PatientWithLink(patient, link, household));
     }
 
     @GetMapping("/{id}")
@@ -75,7 +81,10 @@ public class PatientController {
                 body.phoneE164(), body.email(), body.bloodGroup(), body.allergies(), body.notes());
         var patient = patientService.update(accountId, role, id, update);
         var link = role == AccountRole.ROLE_PHYSIO ? null : links.findLink(accountId, id).orElse(null);
-        return PatientMapper.toView(new PatientWithLink(patient, link));
+        AccountAddress household = role == AccountRole.ROLE_PHYSIO
+                ? addresses.findForPatient(id).orElse(null)
+                : addresses.findForAccount(accountId).orElse(null);
+        return PatientMapper.toView(new PatientWithLink(patient, link, household));
     }
 
     @DeleteMapping("/{id}")

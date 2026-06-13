@@ -3,6 +3,8 @@ package com.healyn.auth.domain;
 import com.healyn.common.persistence.BaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.Table;
 
 import java.time.Instant;
@@ -45,6 +47,10 @@ public class DeviceSession extends BaseEntity {
     @Column(name = "revoked_at")
     private Instant revokedAt;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "revoke_reason")
+    private RevokeReason revokeReason;
+
     protected DeviceSession() {}
 
     public DeviceSession(UUID id, UUID accountId, byte[] refreshTokenHash,
@@ -75,6 +81,7 @@ public class DeviceSession extends BaseEntity {
     public Instant getLastSeenAt() { return lastSeenAt; }
     public Instant getExpiresAt() { return expiresAt; }
     public Instant getRevokedAt() { return revokedAt; }
+    public RevokeReason getRevokeReason() { return revokeReason; }
 
     public boolean isActive(Instant now) {
         return revokedAt == null && now.isBefore(expiresAt);
@@ -94,7 +101,12 @@ public class DeviceSession extends BaseEntity {
         if (userAgent != null) this.userAgent = userAgent;
     }
 
-    public void revoke() {
-        if (this.revokedAt == null) this.revokedAt = Instant.now();
+    /// Revokes the session, recording why. Idempotent: the first reason wins, so a
+    /// later account-wide sweep never overwrites the original sign-out/rotation cause.
+    public void revoke(RevokeReason reason) {
+        if (this.revokedAt == null) {
+            this.revokedAt = Instant.now();
+            this.revokeReason = reason;
+        }
     }
 }

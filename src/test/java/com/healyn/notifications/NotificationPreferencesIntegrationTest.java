@@ -139,6 +139,12 @@ class NotificationPreferencesIntegrationTest {
                 "full_name", "Test Person",
                 "date_of_birth", "1990-01-15",
                 "sex", "UNDISCLOSED"));
+        body.put("address", Map.of(
+                "line1", "1 Test Street",
+                "city", "Pune",
+                "state", "Maharashtra",
+                "postal_code", "411001",
+                "country", "India"));
 
         return body(mvc.perform(post("/auth/register/complete")
                         .contentType(MediaType.APPLICATION_JSON)

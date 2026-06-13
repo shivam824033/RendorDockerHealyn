@@ -3,6 +3,7 @@ package com.healyn.auth.service;
 import com.healyn.auth.config.AuthProperties;
 import com.healyn.auth.domain.Account;
 import com.healyn.auth.domain.DeviceSession;
+import com.healyn.auth.domain.RevokeReason;
 import com.healyn.auth.repository.AccountRepository;
 import com.healyn.auth.repository.DeviceSessionRepository;
 import com.healyn.common.error.ErrorCode;
@@ -28,15 +29,18 @@ public class DeviceSessionService {
     private final DeviceSessionRepository sessions;
     private final AccountRepository accounts;
     private final AccessTokenIssuer accessTokens;
+    private final JwtBlacklist blacklist;
     private final AuthProperties.Jwt jwtProps;
 
     public DeviceSessionService(DeviceSessionRepository sessions,
                                 AccountRepository accounts,
                                 AccessTokenIssuer accessTokens,
+                                JwtBlacklist blacklist,
                                 AuthProperties.Jwt jwtProps) {
         this.sessions = sessions;
         this.accounts = accounts;
         this.accessTokens = accessTokens;
+        this.blacklist = blacklist;
         this.jwtProps = jwtProps;
     }
 
@@ -49,7 +53,7 @@ public class DeviceSessionService {
                 device.deviceId(), device.deviceLabel(), device.fcmToken(),
                 device.ipAddress(), device.userAgent(), refreshExp);
         sessions.save(session);
-        AccessTokenIssuer.Issued access = accessTokens.issue(account);
+        AccessTokenIssuer.Issued access = accessTokens.issue(account, session.getId());
         return new IssuedSession(session.getId(), access.token(), access.expiresAt(), refresh, refreshExp);
     }
 
@@ -60,18 +64,25 @@ public class DeviceSessionService {
         Instant now = Instant.now();
 
         if (existing.getRevokedAt() != null) {
-            log.warn("Refresh-token reuse detected for account {} — revoking all sessions", existing.getAccountId());
-            sessions.revokeAllForAccount(existing.getAccountId(), now);
+            // A token superseded by rotation (or a legacy row with no recorded reason)
+            // being replayed is treated as theft — revoke the whole account. A session
+            // that was administratively ended (signed out / logged out / account sweep)
+            // is simply rejected: it must not sign the account's other devices out.
+            RevokeReason reason = existing.getRevokeReason();
+            if (reason == null || reason == RevokeReason.ROTATED) {
+                log.warn("Refresh-token reuse detected for account {} — revoking all sessions", existing.getAccountId());
+                revokeAllForAccount(existing.getAccountId());
+            }
             throw invalidRefresh();
         }
         if (!existing.isActive(now)) {
-            existing.revoke();
+            existing.revoke(RevokeReason.EXPIRED);
             throw invalidRefresh();
         }
 
         Account account = accounts.findById(existing.getAccountId()).orElseThrow(this::invalidRefresh);
 
-        existing.revoke();
+        existing.revoke(RevokeReason.ROTATED);
         String newRefresh = RefreshTokens.generate();
         Instant newRefreshExp = now.plus(Duration.ofDays(jwtProps.refreshTokenTtlDays()));
         DeviceSession next = new DeviceSession(
@@ -83,7 +94,7 @@ public class DeviceSessionService {
                 newRefreshExp);
         sessions.save(next);
 
-        AccessTokenIssuer.Issued access = accessTokens.issue(account);
+        AccessTokenIssuer.Issued access = accessTokens.issue(account, next.getId());
         return new IssuedSession(next.getId(), access.token(), access.expiresAt(), newRefresh, newRefreshExp);
     }
 
@@ -99,12 +110,25 @@ public class DeviceSessionService {
         if (!s.getAccountId().equals(requestingAccountId)) {
             throw new ForbiddenException(ErrorCode.FORBIDDEN, "Not your session");
         }
-        s.revoke();
+        s.revoke(RevokeReason.SIGNED_OUT);
+        // Kill the device's outstanding access token now, not just its refresh
+        // token — otherwise it keeps authenticating until the JWT's natural expiry.
+        blacklist.revokeSession(s.getId(), accessTokenTtl());
     }
 
     @Transactional
     public int revokeAllForAccount(UUID accountId) {
-        return sessions.revokeAllForAccount(accountId, Instant.now());
+        List<DeviceSession> active = sessions.findAllByAccountIdAndRevokedAtIsNull(accountId);
+        Duration ttl = accessTokenTtl();
+        for (DeviceSession s : active) {
+            s.revoke(RevokeReason.ACCOUNT_REVOKE);
+            blacklist.revokeSession(s.getId(), ttl);
+        }
+        return active.size();
+    }
+
+    private Duration accessTokenTtl() {
+        return Duration.ofSeconds(jwtProps.accessTokenTtlSeconds());
     }
 
     private UnauthorizedException invalidRefresh() {

@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.time.Instant;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -14,6 +15,16 @@ import java.util.UUID;
 public interface TreatmentNoteRepository extends JpaRepository<TreatmentNote, UUID> {
 
     Optional<TreatmentNote> findByAppointmentIdAndDeletedAtIsNull(UUID appointmentId);
+
+    /// The subset of [ids] that have a live treatment note — used to tell the
+    /// physiotherapist which completed appointments still need a note written.
+    @Query("""
+            select n.appointmentId
+            from TreatmentNote n
+            where n.deletedAt is null
+              and n.appointmentId in :ids
+            """)
+    List<UUID> appointmentIdsWithNotes(@Param("ids") Collection<UUID> ids);
 
     @Query("""
             select n

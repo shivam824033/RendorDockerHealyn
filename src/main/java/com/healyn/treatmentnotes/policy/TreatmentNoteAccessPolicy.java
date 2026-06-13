@@ -31,4 +31,13 @@ public class TreatmentNoteAccessPolicy {
         if (role == AccountRole.ROLE_PHYSIO) return;
         patientAccess.requireAccess(actorId, role, patientId, AccessMode.READ);
     }
+
+    /** Bulk note-existence status is a physiotherapist dashboard aid (which completed
+     * appointments still need a note); patient-side accounts have no use for it. */
+    public void requireStatusRead(AccountRole role) {
+        if (role != AccountRole.ROLE_PHYSIO) {
+            throw new ForbiddenException(ErrorCode.FORBIDDEN,
+                    "Only the physiotherapist can read treatment-note status");
+        }
+    }
 }

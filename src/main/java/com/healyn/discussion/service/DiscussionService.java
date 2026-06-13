@@ -140,9 +140,17 @@ public class DiscussionService {
     }
 
     private void notifyNewMessage(Appointment appt, DiscussionMessage msg, DiscussionSenderRole senderRole) {
-        Map<String, String> payload = Map.of(
-                "appointmentId", appt.getId().toString(),
-                "messageId", msg.getId().toString());
+        // IDs only (CLAUDE.md Hard Rule #4) — never the message body. The human-friendly
+        // appointmentNumber (a business id, not PHI) rides along when present so the client can
+        // name the thread without a fetch; legacy rows without one fall back to generic text.
+        Map<String, String> payload = appt.getAppointmentNumber() == null
+                ? Map.of(
+                        "appointmentId", appt.getId().toString(),
+                        "messageId", msg.getId().toString())
+                : Map.of(
+                        "appointmentId", appt.getId().toString(),
+                        "messageId", msg.getId().toString(),
+                        "appointmentNumber", appt.getAppointmentNumber());
         if (senderRole == DiscussionSenderRole.PHYSIO) {
             notifications.enqueueToPatientManagers(
                     NotificationKind.DISCUSSION_NEW_MESSAGE, appt.getPatientId(), payload, msg.getId());

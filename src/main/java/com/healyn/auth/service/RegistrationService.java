@@ -10,6 +10,8 @@ import com.healyn.common.error.ConflictException;
 import com.healyn.common.error.ErrorCode;
 import com.healyn.common.error.UnprocessableException;
 import com.healyn.common.id.UuidV7;
+import com.healyn.patients.service.AccountAddressService;
+import com.healyn.patients.service.AddressData;
 import com.healyn.patients.service.NewPatientProfile;
 import com.healyn.patients.service.PatientService;
 import org.springframework.stereotype.Service;
@@ -25,15 +27,17 @@ public class RegistrationService {
     private final PasswordHasher passwordHasher;
     private final DeviceSessionService sessions;
     private final PatientService patients;
+    private final AccountAddressService addresses;
 
     public RegistrationService(AccountRepository accounts, OtpService otp,
                                PasswordHasher passwordHasher, DeviceSessionService sessions,
-                               PatientService patients) {
+                               PatientService patients, AccountAddressService addresses) {
         this.accounts = accounts;
         this.otp = otp;
         this.passwordHasher = passwordHasher;
         this.sessions = sessions;
         this.patients = patients;
+        this.addresses = addresses;
     }
 
     @Transactional
@@ -45,7 +49,8 @@ public class RegistrationService {
 
     @Transactional
     public IssuedSession complete(UUID challengeId, String code, String rawPassword,
-                                  DeviceMeta device, NewPatientProfile primaryProfile) {
+                                  DeviceMeta device, NewPatientProfile primaryProfile,
+                                  AddressData address) {
         OtpChallenge challenge = otp.verify(challengeId, code, OtpPurpose.REGISTRATION);
         boolean isEmail = challenge.getChannel() == OtpChannel.EMAIL;
         String target = challenge.getTarget();
@@ -68,6 +73,9 @@ public class RegistrationService {
                 AccountRole.ROLE_ACCOUNT);
         accounts.save(account);
         patients.createPrimaryFor(account, primaryProfile);
+        // Household address captured at signup, shared across the account's
+        // patients. Same transaction: no account without its address.
+        addresses.upsert(account.getId(), address);
         return sessions.issue(account, device);
     }
 
