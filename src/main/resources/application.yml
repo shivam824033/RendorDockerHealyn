@@ -32,7 +32,7 @@ spring:
       password: ${HEALYN_REDIS_PASSWORD:}
       database: ${HEALYN_REDIS_DB:0}
       ssl:
-        enabled: false
+        enabled: true
   mvc:
     throw-exception-if-no-handler-found: true
   web:
