@@ -57,6 +57,9 @@ dependencies {
     // Push notifications (FCM dispatch adapter) — Apache 2.0
     implementation("com.google.firebase:firebase-admin:9.4.3")
 
+    implementation ("org.springframework.boot:spring-boot-starter-mail")
+
+
     // Test
     testImplementation("org.springframework.boot:spring-boot-starter-test") {
         exclude(group = "org.junit.vintage", module = "junit-vintage-engine")
