@@ -105,7 +105,7 @@ healyn:
   # and fails fast (SmsOtpSender) until a provider adapter is added. local/test log to console.
   otp:
     email:
-      from: ${HEALYN_OTP_EMAIL_FROM:}
+      from: ${HEALYN_OTP_EMAIL_FROM:smkr@gmail.com}
       subject: ${HEALYN_OTP_EMAIL_SUBJECT:Your Healyn verification code}
   # Single-clinic reference frame (Phase 1). Used to derive clinic-local calendar days,
   # e.g. the YYYYMMDD stem of an Appointment Number. Instants are still stored as UTC.
