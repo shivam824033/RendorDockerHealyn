@@ -98,4 +98,32 @@ public class Account extends BaseEntity {
         this.lockedUntil = null;
         if (this.status == AccountStatus.LOCKED) this.status = AccountStatus.ACTIVE;
     }
+
+    /// Marks the account as having a deletion request pending in its grace window. It can
+    /// still authenticate so the holder can cancel; {@link #anonymize} ends the lifecycle.
+    public void markPendingDeletion() {
+        this.status = AccountStatus.PENDING_DELETION;
+    }
+
+    /// Reverts a pending deletion when the holder cancels within the grace window.
+    public void cancelPendingDeletion() {
+        if (this.status == AccountStatus.PENDING_DELETION) this.status = AccountStatus.ACTIVE;
+    }
+
+    /// Right-to-erasure: strips identifying credentials and contact details and disables the
+    /// account. The phone is cleared and the email is replaced by a non-identifying, unique
+    /// tombstone derived from the account id — the {@code accounts_email_or_phone} check
+    /// requires one contact column to be non-null, and the tombstone keeps the unique index
+    /// satisfied without retaining the real address. The password hash is overwritten with an
+    /// unusable random value. Idempotent — re-running on an already-anonymized account is a no-op.
+    public void anonymize(String unusableHash, byte[] unusableSalt, Instant when) {
+        this.email = "deleted-" + this.id + "@anonymized.invalid";
+        this.phoneE164 = null;
+        this.passwordHash = unusableHash;
+        this.passwordSalt = unusableSalt;
+        this.status = AccountStatus.DISABLED;
+        this.lockedUntil = null;
+        this.lastLoginAt = null;
+        if (this.deletedAt == null) this.deletedAt = when;
+    }
 }

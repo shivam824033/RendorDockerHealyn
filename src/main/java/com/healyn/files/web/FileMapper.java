@@ -31,4 +31,18 @@ public final class FileMapper {
                 r.expiresInSeconds());
         return new FileDtos.PresignView(r.file().getId(), upload);
     }
+
+    public static FileDtos.FileDocumentView toDocumentView(FileObject f, String appointmentNumber) {
+        return new FileDtos.FileDocumentView(
+                f.getId(),
+                f.getPatientId(),
+                f.getKind(),
+                f.getMimeType(),
+                f.getOriginalFilename(),
+                f.getSizeBytes(),
+                f.getUploadedByRole(),
+                f.getAppointmentId(),
+                appointmentNumber,
+                f.getCreatedAt());
+    }
 }

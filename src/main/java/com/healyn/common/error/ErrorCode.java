@@ -15,6 +15,13 @@ public final class ErrorCode {
     public static final String PATIENTS_PRIMARY_REQUIRED = "patients.primary_required";
     public static final String PATIENTS_RELATIONSHIP_EXISTS = "patients.relationship_exists";
     public static final String PATIENTS_NOT_FOUND = "patients.not_found";
+    public static final String PATIENTS_AUTHORITY_REQUIRED = "patients.authority_required";
+
+    public static final String COMPLIANCE_LEGAL_DOCUMENT_NOT_FOUND = "compliance.legal_document_not_found";
+    public static final String COMPLIANCE_DELETION_ALREADY_REQUESTED = "compliance.deletion_already_requested";
+    public static final String COMPLIANCE_DELETION_NOT_FOUND = "compliance.deletion_not_found";
+    public static final String COMPLIANCE_INVALID_PASSWORD = "compliance.invalid_password";
+    public static final String COMPLIANCE_DELETION_NOT_ALLOWED = "compliance.deletion_not_allowed";
 
     public static final String AVAILABILITY_RULE_NOT_FOUND = "availability.rule_not_found";
     public static final String AVAILABILITY_BLACKOUT_NOT_FOUND = "availability.blackout_not_found";
@@ -52,13 +59,29 @@ public final class ErrorCode {
     public static final String FILE_TOO_LARGE = "files.too_large";
     public static final String FILE_KIND_REQUIRED = "files.kind_required";
     public static final String FILE_FILENAME_INVALID = "files.filename_invalid";
-    public static final String FILE_APPOINTMENT_REQUIRED = "files.appointment_required";
     public static final String FILE_PATIENT_MISMATCH = "files.patient_mismatch";
     public static final String FILE_DAILY_CAP_EXCEEDED = "files.daily_cap_exceeded";
     public static final String FILE_INVALID_STATE = "files.invalid_state";
     public static final String FILE_OBJECT_MISSING = "files.object_missing";
     public static final String FILE_MAGIC_BYTE_MISMATCH = "files.magic_byte_mismatch";
     public static final String FILE_REFERENCED = "files.referenced";
+
+    public static final String PHYSIO_FORBIDDEN = "physio.forbidden";
+    public static final String PHYSIO_AVATAR_UNSUPPORTED_MIME = "physio.avatar_unsupported_mime";
+    public static final String PHYSIO_AVATAR_TOO_LARGE = "physio.avatar_too_large";
+    public static final String PHYSIO_AVATAR_KEY_INVALID = "physio.avatar_key_invalid";
+    public static final String PHYSIO_AVATAR_INVALID = "physio.avatar_invalid";
+
+    public static final String PROMOTION_FORBIDDEN = "promotions.forbidden";
+    public static final String PROMOTION_NOT_FOUND = "promotions.not_found";
+    public static final String PROMOTION_LIMIT_REACHED = "promotions.limit_reached";
+    public static final String PROMOTION_INVALID_SCHEDULE = "promotions.invalid_schedule";
+    public static final String PROMOTION_INVALID_ACTION = "promotions.invalid_action";
+    public static final String PROMOTION_REORDER_MISMATCH = "promotions.reorder_mismatch";
+    public static final String PROMOTION_COVER_UNSUPPORTED_MIME = "promotions.cover_unsupported_mime";
+    public static final String PROMOTION_COVER_TOO_LARGE = "promotions.cover_too_large";
+    public static final String PROMOTION_COVER_KEY_INVALID = "promotions.cover_key_invalid";
+    public static final String PROMOTION_COVER_INVALID = "promotions.cover_invalid";
 
     private ErrorCode() {}
 }

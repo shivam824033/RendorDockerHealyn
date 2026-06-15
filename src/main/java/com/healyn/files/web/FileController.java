@@ -1,6 +1,8 @@
 package com.healyn.files.web;
 
 import com.healyn.auth.domain.AccountRole;
+import com.healyn.common.pagination.CursorPage;
+import com.healyn.files.domain.FileObject;
 import com.healyn.files.service.FileService;
 import com.healyn.files.service.PresignFileRequest;
 import com.healyn.files.service.PresignResult;
@@ -13,9 +15,12 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -35,9 +40,29 @@ public class FileController {
         UUID actorId = UUID.fromString(jwt.getSubject());
         AccountRole role = roleOf(jwt);
         PresignResult result = service.presign(actorId, role, new PresignFileRequest(
-                body.patientId(), body.appointmentId(), body.kind(),
-                body.mimeType(), body.sizeBytes(), body.originalFilename()));
+                body.patientId(), body.appointmentId(), body.kind(), body.context(),
+                body.uploadSource(), body.mimeType(), body.sizeBytes(), body.originalFilename()));
         return FileMapper.toPresignView(result);
+    }
+
+    /** A patient's library documents, filtered by uploader (PATIENT / PHYSIO), cursor-paginated. */
+    @GetMapping
+    public FileDtos.DocumentPage listDocuments(
+            @AuthenticationPrincipal Jwt jwt,
+            @RequestParam("patient_id") UUID patientId,
+            @RequestParam("uploader") FileDtos.DocumentUploader uploader,
+            @RequestParam(value = "cursor", required = false) String cursor,
+            @RequestParam(value = "limit", required = false, defaultValue = "20") int limit) {
+        UUID actorId = UUID.fromString(jwt.getSubject());
+        AccountRole role = roleOf(jwt);
+        CursorPage<FileObject> page = service.listDocuments(actorId, role, patientId, uploader.role(), cursor, limit);
+        Map<UUID, String> numbers = service.appointmentNumbersFor(
+                page.items().stream().map(FileObject::getAppointmentId).toList());
+        List<FileDtos.FileDocumentView> views = page.items().stream()
+                .map(f -> FileMapper.toDocumentView(f,
+                        f.getAppointmentId() == null ? null : numbers.get(f.getAppointmentId())))
+                .toList();
+        return new FileDtos.DocumentPage(views, page.nextCursor());
     }
 
     @PostMapping("/{id}/complete")

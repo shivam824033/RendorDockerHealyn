@@ -358,6 +358,7 @@ class DiscussionIntegrationTest {
                 "full_name", tag + " Person",
                 "date_of_birth", "1991-05-20",
                 "sex", "UNDISCLOSED"));
+        body.put("consents", Map.of("terms_accepted", true, "privacy_accepted", true, "health_data_processing_accepted", true));
         body.put("address", Map.of(
                 "line1", "1 Test Street",
                 "city", "Pune",

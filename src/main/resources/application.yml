@@ -40,6 +40,20 @@ spring:
       add-mappings: false
   jackson:
     default-property-inclusion: non_null
+  # SMTP transport for OTP email. Blank host (the default) means no JavaMailSender is
+  # auto-configured; SmtpOtpSender then fails fast outside local/test. local/test use the
+  # console LoggingOtpSender and need none of this.
+  mail:
+    host: ${HEALYN_SMTP_HOST:}
+    port: ${HEALYN_SMTP_PORT:587}
+    username: ${HEALYN_SMTP_USERNAME:}
+    password: ${HEALYN_SMTP_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: ${HEALYN_SMTP_AUTH:true}
+          starttls:
+            enable: ${HEALYN_SMTP_STARTTLS:true}
 
 server:
   port: ${HEALYN_HTTP_PORT:8080}
@@ -48,12 +62,22 @@ server:
     include-stacktrace: never
     include-binding-errors: never
   forward-headers-strategy: framework
+  # Request-size ceilings (audit M4). Bounds memory an oversized request can consume; the
+  # auth filter additionally enforces a tighter per-endpoint body cap (healyn.ratelimit).
+  max-http-request-header-size: 16KB
+  tomcat:
+    max-swallow-size: 2MB
+    max-http-form-post-size: 256KB
 
 management:
   endpoints:
     web:
       exposure:
-        include: health, info, prometheus
+        # Secure default: only health + info reach the public HTTP port. prod
+        # (application-prod.yml) moves Actuator to an internal-only management port.
+        # A real /actuator/prometheus endpoint additionally needs the
+        # micrometer-registry-prometheus dependency, which is not on the classpath yet.
+        include: health, info
   endpoint:
     health:
       probes:
@@ -61,9 +85,13 @@ management:
       show-details: never
 
 springdoc:
+  # Secure default (audit S-2): the OpenAPI spec and Swagger UI are OFF unless a profile
+  # opts in. application-local.yml re-enables them for development; prod keeps them off.
   api-docs:
+    enabled: false
     path: /v3/api-docs
   swagger-ui:
+    enabled: false
     path: /swagger-ui.html
     operationsSorter: method
     tagsSorter: alpha
@@ -73,6 +101,12 @@ springdoc:
   show-actuator: false
 
 healyn:
+  # OTP delivery. EMAIL goes over spring.mail.* SMTP (SmtpOtpSender); SMS is not wired yet
+  # and fails fast (SmsOtpSender) until a provider adapter is added. local/test log to console.
+  otp:
+    email:
+      from: ${HEALYN_OTP_EMAIL_FROM:}
+      subject: ${HEALYN_OTP_EMAIL_SUBJECT:Your Healyn verification code}
   # Single-clinic reference frame (Phase 1). Used to derive clinic-local calendar days,
   # e.g. the YYYYMMDD stem of an Appointment Number. Instants are still stored as UTC.
   clinic:
@@ -96,6 +130,21 @@ healyn:
     public-key-path: ${HEALYN_JWT_PUBLIC_KEY_PATH:}
   password:
     pepper: ${HEALYN_PASSWORD_PEPPER:}
+  # Per-IP abuse protection for the unauthenticated auth surface (audit H1/H2/M4/M5). Backed by
+  # the existing Redis. These complement the per-account lockout and per-target OTP cap. Windows
+  # are seconds. max-body-bytes is the request payload ceiling (413) on /auth/** POSTs.
+  ratelimit:
+    enabled: ${HEALYN_RATELIMIT_ENABLED:true}
+    max-body-bytes: ${HEALYN_RATELIMIT_MAX_BODY_BYTES:65536}
+    login:
+      max-requests: ${HEALYN_RATELIMIT_LOGIN_MAX:10}
+      window-seconds: ${HEALYN_RATELIMIT_LOGIN_WINDOW:60}
+    refresh:
+      max-requests: ${HEALYN_RATELIMIT_REFRESH_MAX:30}
+      window-seconds: ${HEALYN_RATELIMIT_REFRESH_WINDOW:60}
+    otp-start:
+      max-requests: ${HEALYN_RATELIMIT_OTP_START_MAX:5}
+      window-seconds: ${HEALYN_RATELIMIT_OTP_START_WINDOW:600}
   # Local/dev only: DevPhysioSeeder upserts one ROLE_PHYSIO login so the
   # physiotherapist app is reachable. Never used in prod, where the physio is
   # provisioned by an operator (README §5.1). The password is a dev default —
@@ -104,6 +153,16 @@ healyn:
     physio:
       email: ${HEALYN_DEV_PHYSIO_EMAIL:physio@healyn.local}
       password: ${HEALYN_DEV_PHYSIO_PASSWORD:Physio!Dev123}
+  # Prod provisioning of the single ROLE_PHYSIO login (README §5.2). Off by default. The
+  # operator enables it once with a temporary email/password secret, boots, then turns it
+  # back off and removes the password secret; the physio rotates via the reset flow on first
+  # login. Hashing must run in-process (PasswordHasher mixes a server pepper) — offline SQL
+  # inserts cannot produce a matching hash. Idempotent (PhysioBootstrapRunner).
+  bootstrap:
+    physio:
+      enabled: ${HEALYN_BOOTSTRAP_PHYSIO_ENABLED:false}
+      email: ${HEALYN_BOOTSTRAP_PHYSIO_EMAIL:}
+      password: ${HEALYN_BOOTSTRAP_PHYSIO_PASSWORD:}
   notifications:
     poller-enabled: ${HEALYN_NOTIFICATIONS_POLLER_ENABLED:true}
     poll-interval-ms: ${HEALYN_NOTIFICATIONS_POLL_INTERVAL_MS:2000}
@@ -116,3 +175,13 @@ healyn:
   # profile so a misconfigured prod deploy can't silently drop all push.
   fcm:
     credentials-path: ${HEALYN_FCM_CREDENTIALS_PATH:}
+  # Compliance surface: consent capture + account deletion / right-to-erasure (audit §11 item 6).
+  # grace-days is the cancellable window before anonymization. purge-enabled gates the hard-purge
+  # of de-identified clinical scaffolding and stays OFF by default (Hard Rule #7 — needs sign-off).
+  compliance:
+    poller-enabled: ${HEALYN_COMPLIANCE_POLLER_ENABLED:true}
+    poll-interval-ms: ${HEALYN_COMPLIANCE_POLL_INTERVAL_MS:60000}
+    grace-days: ${HEALYN_COMPLIANCE_GRACE_DAYS:30}
+    default-locale: ${HEALYN_COMPLIANCE_DEFAULT_LOCALE:en}
+    purge-enabled: ${HEALYN_COMPLIANCE_PURGE_ENABLED:false}
+    retention-days: ${HEALYN_COMPLIANCE_RETENTION_DAYS:2920}

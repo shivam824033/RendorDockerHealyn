@@ -162,7 +162,7 @@ class AuthIntegrationTest {
     }
 
     @Test
-    void five_failed_logins_lock_the_account() throws Exception {
+    void five_failed_logins_lock_the_account_and_locked_state_is_not_distinguishable() throws Exception {
         String email = "bob+" + UUID.randomUUID() + "@example.com";
         registerAndComplete(email, "valid-password-1");
 
@@ -176,13 +176,17 @@ class AuthIntegrationTest {
                     .andExpect(status().isUnauthorized());
         }
 
+        // The account is now locked: even the CORRECT password is rejected. The response is a
+        // generic 401 (audit H2) — identical to a wrong password — so the lockout state cannot be
+        // used to confirm the account exists.
         mvc.perform(post("/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json.writeValueAsBytes(Map.of(
                                 "email_or_phone", email,
                                 "password", "valid-password-1",
                                 "device", deviceBody()))))
-                .andExpect(status().isLocked());
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.error.code").value("common.unauthorized"));
     }
 
     @Test
@@ -236,7 +240,8 @@ class AuthIntegrationTest {
                                 "password", "valid-password-3",
                                 "device", deviceBody(),
                                 "profile", profileBody(),
-                                "address", addressBody()))))
+                                "address", addressBody(),
+                                "consents", consentsBody()))))
                 .andExpect(status().isUnprocessableEntity());
     }
 
@@ -257,6 +262,7 @@ class AuthIntegrationTest {
         body.put("password", "valid-password-9");
         body.put("device", deviceBody());
         body.put("profile", profileBody());
+        body.put("consents", consentsBody());
         // address deliberately omitted — it is required at signup.
 
         mvc.perform(post("/auth/register/complete")
@@ -280,6 +286,89 @@ class AuthIntegrationTest {
                 .andExpect(jsonPath("$.patients[0].full_name").value("Test Person"));
     }
 
+    @Test
+    void sql_injection_payload_in_login_identifier_is_treated_as_data_not_query() throws Exception {
+        // Classic SQLi payloads as the login identifier. All queries are parameterized, so these
+        // are looked up literally (no account matches) and yield a generic 401 — never a 500, a
+        // DB error, or a leaked stack trace.
+        String[] payloads = {
+                "' OR '1'='1",
+                "admin'--",
+                "'; DROP TABLE accounts;--",
+                "\" OR 1=1 --"
+        };
+        for (String payload : payloads) {
+            mvc.perform(post("/auth/login")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(json.writeValueAsBytes(Map.of(
+                                    "email_or_phone", payload,
+                                    "password", "whatever-password",
+                                    "device", deviceBody()))))
+                    .andExpect(status().isUnauthorized())
+                    .andExpect(jsonPath("$.error.code").value("common.unauthorized"));
+        }
+    }
+
+    @Test
+    void malformed_json_body_returns_400_without_leaking_internals() throws Exception {
+        mvc.perform(post("/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{ this is not valid json "))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error.code").value("common.validation_failed"));
+    }
+
+    @Test
+    void register_complete_rejects_common_password_with_422() throws Exception {
+        String email = "weak+" + UUID.randomUUID() + "@example.com";
+        Map<String, Object> startResp = body(mvc.perform(post("/auth/register/start")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json.writeValueAsBytes(Map.of("target", Map.of("email", email)))))
+                .andExpect(status().isAccepted())
+                .andReturn());
+        String code = otpSender.latestByTarget.get(email);
+        assertThat(code).isNotNull();
+
+        Map<String, Object> body = new HashMap<>();
+        body.put("challenge_id", startResp.get("challenge_id"));
+        body.put("code", code);
+        body.put("password", "password123"); // passes @Size(10..128) but is on the denylist
+        body.put("device", deviceBody());
+        body.put("profile", profileBody());
+        body.put("address", addressBody());
+        body.put("consents", consentsBody());
+
+        mvc.perform(post("/auth/register/complete")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json.writeValueAsBytes(body)))
+                .andExpect(status().isUnprocessableEntity());
+    }
+
+    @Test
+    void register_complete_rejects_too_short_password_with_400() throws Exception {
+        // Below @Size(min=10) — rejected at bean validation before any service work.
+        String email = "short+" + UUID.randomUUID() + "@example.com";
+        Map<String, Object> startResp = body(mvc.perform(post("/auth/register/start")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json.writeValueAsBytes(Map.of("target", Map.of("email", email)))))
+                .andExpect(status().isAccepted())
+                .andReturn());
+
+        Map<String, Object> body = new HashMap<>();
+        body.put("challenge_id", startResp.get("challenge_id"));
+        body.put("code", "000000");
+        body.put("password", "short");
+        body.put("device", deviceBody());
+        body.put("profile", profileBody());
+        body.put("address", addressBody());
+        body.put("consents", consentsBody());
+
+        mvc.perform(post("/auth/register/complete")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json.writeValueAsBytes(body)))
+                .andExpect(status().isBadRequest());
+    }
+
     private Map<String, Object> registerAndComplete(String email, String password) throws Exception {
         Map<String, Object> startResp = body(mvc.perform(post("/auth/register/start")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -296,6 +385,7 @@ class AuthIntegrationTest {
         body.put("device", deviceBody());
         body.put("profile", profileBody());
         body.put("address", addressBody());
+        body.put("consents", consentsBody());
 
         return body(mvc.perform(post("/auth/register/complete")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -334,6 +424,13 @@ class AuthIntegrationTest {
                 "state", "Maharashtra",
                 "postal_code", "411001",
                 "country", "India");
+    }
+
+    private static Map<String, Object> consentsBody() {
+        return Map.of(
+                "terms_accepted", true,
+                "privacy_accepted", true,
+                "health_data_processing_accepted", true);
     }
 
     private Map<String, Object> body(MvcResult result) throws Exception {

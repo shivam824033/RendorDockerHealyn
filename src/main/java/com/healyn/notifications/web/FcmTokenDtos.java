@@ -15,4 +15,7 @@ public final class FcmTokenDtos {
             @Size(max = 128) String deviceId) {}
 
     public record RegisterResponse(UUID id) {}
+
+    public record UnregisterRequest(
+            @NotBlank @Size(max = 128) String deviceId) {}
 }

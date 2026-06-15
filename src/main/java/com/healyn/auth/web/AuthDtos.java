@@ -3,6 +3,7 @@ package com.healyn.auth.web;
 import com.healyn.patients.domain.PatientSex;
 import com.healyn.patients.web.PatientDtos;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -40,13 +41,21 @@ public final class AuthDtos {
             @NotNull @Past LocalDate dateOfBirth,
             PatientSex sex) {}
 
+    /// Consents the account holder must grant at signup. All three are mandatory for lawful
+    /// processing of health data (DPDP Act 2023) — each must be true or registration is rejected.
+    public record RegistrationConsents(
+            @AssertTrue(message = "TERMS_REQUIRED") boolean termsAccepted,
+            @AssertTrue(message = "PRIVACY_REQUIRED") boolean privacyAccepted,
+            @AssertTrue(message = "HEALTH_DATA_REQUIRED") boolean healthDataProcessingAccepted) {}
+
     public record RegisterCompleteRequest(
             @NotNull UUID challengeId,
             @NotBlank @Pattern(regexp = "^\\d{6}$", message = "OTP_FORMAT") String code,
             @NotBlank @Size(min = 10, max = 128) String password,
             @Valid @NotNull DeviceRequest device,
             @Valid @NotNull PrimaryPatientProfileRequest profile,
-            @Valid @NotNull PatientDtos.AddressRequest address) {}
+            @Valid @NotNull PatientDtos.AddressRequest address,
+            @Valid @NotNull RegistrationConsents consents) {}
 
     public record LoginRequest(
             @NotBlank @Size(max = 254) String emailOrPhone,

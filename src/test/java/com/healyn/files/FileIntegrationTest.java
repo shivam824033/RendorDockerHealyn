@@ -50,6 +50,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -205,6 +206,120 @@ class FileIntegrationTest {
                 .andExpect(status().isForbidden());
     }
 
+    @Test
+    void standalone_document_lists_under_patient_uploader() throws Exception {
+        Fixture f = bootstrap("gina");
+        UUID fileId = presignDocument(f.account, f.patientId, null, "application/pdf", 1024, "old-mri.pdf", null);
+        uploadComplete(f.account, fileId);
+
+        // No appointment → standalone key prefix (FILE_STORAGE_GUIDELINES §3).
+        assertThat(files.findById(fileId).orElseThrow().getStorageKey()).contains("/standalone/");
+
+        mvc.perform(get("/files")
+                        .param("patient_id", f.patientId.toString())
+                        .param("uploader", "PATIENT")
+                        .header("Authorization", "Bearer " + f.account.access))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items.length()").value(1))
+                .andExpect(jsonPath("$.items[0].id").value(fileId.toString()))
+                .andExpect(jsonPath("$.items[0].uploaded_by_role").value("ROLE_ACCOUNT"));
+
+        mvc.perform(get("/files")
+                        .param("patient_id", f.patientId.toString())
+                        .param("uploader", "PHYSIO")
+                        .header("Authorization", "Bearer " + f.account.access))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items.length()").value(0));
+    }
+
+    @Test
+    void library_list_splits_by_uploader_and_excludes_discussion_files() throws Exception {
+        Fixture f = bootstrap("hank");
+        Session physio = seedPhysio();
+
+        UUID physioDoc = presignDocument(physio, f.patientId, null, "application/pdf", 1000, "plan.pdf", null);
+        uploadComplete(physio, physioDoc);
+        UUID patientDoc = presignDocument(f.account, f.patientId, null, "application/pdf", 1100, "report.pdf", null);
+        uploadComplete(f.account, patientDoc);
+        // A discussion-context (appointment-scoped) file must not appear in the library.
+        UUID chatFile = presignDocument(f.account, f.patientId, f.apptId, "application/pdf", 1200, "chat.pdf", "DISCUSSION");
+        uploadComplete(f.account, chatFile);
+
+        mvc.perform(get("/files")
+                        .param("patient_id", f.patientId.toString())
+                        .param("uploader", "PHYSIO")
+                        .header("Authorization", "Bearer " + f.account.access))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items.length()").value(1))
+                .andExpect(jsonPath("$.items[0].id").value(physioDoc.toString()))
+                .andExpect(jsonPath("$.items[0].uploaded_by_role").value("ROLE_PHYSIO"));
+
+        mvc.perform(get("/files")
+                        .param("patient_id", f.patientId.toString())
+                        .param("uploader", "PATIENT")
+                        .header("Authorization", "Bearer " + f.account.access))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items.length()").value(1))
+                .andExpect(jsonPath("$.items[0].id").value(patientDoc.toString()));
+    }
+
+    @Test
+    void list_documents_for_unowned_patient_is_forbidden() throws Exception {
+        Fixture owner = bootstrap("ida");
+        Fixture stranger = bootstrap("jack");
+
+        mvc.perform(get("/files")
+                        .param("patient_id", owner.patientId.toString())
+                        .param("uploader", "PATIENT")
+                        .header("Authorization", "Bearer " + stranger.account.access))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void patient_cannot_delete_a_physiotherapist_uploaded_document() throws Exception {
+        Fixture f = bootstrap("kara");
+        Session physio = seedPhysio();
+        UUID physioDoc = presignDocument(physio, f.patientId, null, "application/pdf", 1000, "rx.pdf", null);
+        uploadComplete(physio, physioDoc);
+
+        mvc.perform(delete("/files/" + physioDoc)
+                        .header("Authorization", "Bearer " + f.account.access))
+                .andExpect(status().isForbidden());
+
+        mvc.perform(delete("/files/" + physioDoc)
+                        .header("Authorization", "Bearer " + physio.access))
+                .andExpect(status().isNoContent());
+    }
+
+    @Test
+    void document_list_paginates_with_cursor() throws Exception {
+        Fixture f = bootstrap("liam");
+        for (int i = 0; i < 3; i++) {
+            UUID id = presignDocument(f.account, f.patientId, null, "application/pdf", 1000 + i, "d" + i + ".pdf", null);
+            uploadComplete(f.account, id);
+        }
+
+        MvcResult first = mvc.perform(get("/files")
+                        .param("patient_id", f.patientId.toString())
+                        .param("uploader", "PATIENT")
+                        .param("limit", "2")
+                        .header("Authorization", "Bearer " + f.account.access))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items.length()").value(2))
+                .andReturn();
+        String next = json.readTree(first.getResponse().getContentAsByteArray()).get("next_cursor").asText();
+        assertThat(next).isNotBlank();
+
+        mvc.perform(get("/files")
+                        .param("patient_id", f.patientId.toString())
+                        .param("uploader", "PATIENT")
+                        .param("limit", "2")
+                        .param("cursor", next)
+                        .header("Authorization", "Bearer " + f.account.access))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items.length()").value(1));
+    }
+
     // ---- fixtures + helpers ----
 
     private record Fixture(Session account, UUID patientId, UUID apptId) {}
@@ -227,6 +342,35 @@ class FileIntegrationTest {
                 .andExpect(jsonPath("$.upload.method").value("PUT"))
                 .andReturn();
         return UUID.fromString(json.readTree(res.getResponse().getContentAsByteArray()).get("file_id").asText());
+    }
+
+    /** Presigns a document with an optional appointment link and optional context (defaults LIBRARY). */
+    private UUID presignDocument(Session actor, UUID patientId, UUID apptId,
+                                 String mime, long size, String filename, String context) throws Exception {
+        Map<String, Object> body = new HashMap<>();
+        body.put("patient_id", patientId.toString());
+        if (apptId != null) body.put("appointment_id", apptId.toString());
+        body.put("kind", "REPORT");
+        if (context != null) body.put("context", context);
+        body.put("mime_type", mime);
+        body.put("size_bytes", size);
+        body.put("original_filename", filename);
+        MvcResult res = mvc.perform(post("/files/presign")
+                        .header("Authorization", "Bearer " + actor.access)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json.writeValueAsString(body)))
+                .andExpect(status().isOk())
+                .andReturn();
+        return UUID.fromString(json.readTree(res.getResponse().getContentAsByteArray()).get("file_id").asText());
+    }
+
+    /** Simulates the client's direct PUT (valid PDF bytes) then promotes the file to AVAILABLE. */
+    private void uploadComplete(Session actor, UUID fileId) throws Exception {
+        FileObject row = files.findById(fileId).orElseThrow();
+        fileStore.put(row.getStorageKey(), pdfBytes((int) row.getSizeBytes()));
+        mvc.perform(post("/files/" + fileId + "/complete")
+                        .header("Authorization", "Bearer " + actor.access))
+                .andExpect(status().isOk());
     }
 
     private static Map<String, Object> presignBody(UUID patientId, UUID apptId,
@@ -310,6 +454,7 @@ class FileIntegrationTest {
                 "full_name", tag + " Person",
                 "date_of_birth", "1991-05-20",
                 "sex", "UNDISCLOSED"));
+        body.put("consents", Map.of("terms_accepted", true, "privacy_accepted", true, "health_data_processing_accepted", true));
         body.put("address", Map.of(
                 "line1", "1 Test Street",
                 "city", "Pune",

@@ -399,9 +399,18 @@ public class AppointmentService {
         fresh.assignNumber(numbers.childNumber(
                 old.getAppointmentNumber(), AppointmentChildKind.RESCHEDULE, priorReschedules));
 
-        Appointment saved = saveAndFlushOrConflict(fresh);
+        // Retire the old row from the physio-overlap EXCLUDE set BEFORE flushing the
+        // replacement (APPOINTMENT_FLOW §6). A physiotherapist reschedule reuses the same
+        // physiotherapist and may keep or overlap the appointment's own current time — e.g.
+        // shortening a 09:15–10:15 visit to 09:15–09:45. If the old (still CONFIRMED) row
+        // were left in the set, the new row would clash with *itself* and 409. Marking it
+        // RESCHEDULED and flushing first means the replacement is validated only against
+        // *other* appointments; a genuine clash still fails on the flush below (and the whole
+        // transaction rolls back, leaving the old row CONFIRMED).
         old.markRescheduled();
-        appointments.save(old);
+        appointments.saveAndFlush(old);
+
+        Appointment saved = saveAndFlushOrConflict(fresh);
         // Both sides of the replacement, in story order: the old row was rescheduled,
         // then its replacement came into being (same instant; insertion order ties).
         events.recordRescheduled(old, saved, actorId, role, now);
@@ -497,7 +506,7 @@ public class AppointmentService {
         } catch (DataIntegrityViolationException e) {
             if (isExclusionViolation(e)) {
                 throw new ConflictException(ErrorCode.APPOINTMENT_SLOT_UNAVAILABLE,
-                        "The chosen time overlaps another appointment for the physiotherapist");
+                        "Selected duration overlaps with another appointment. Please choose another time.");
             }
             throw e;
         }

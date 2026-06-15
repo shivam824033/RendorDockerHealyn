@@ -6,7 +6,6 @@ import com.healyn.auth.service.LoginService;
 import com.healyn.auth.service.PasswordResetService;
 import com.healyn.auth.service.RegistrationService;
 import com.healyn.common.error.ErrorCode;
-import com.healyn.common.error.LockedException;
 import com.healyn.common.error.UnauthorizedException;
 import com.healyn.common.error.UnprocessableException;
 import com.healyn.patients.service.AddressData;
@@ -74,7 +73,10 @@ public class AuthController {
                 HttpClientInfo.enrich(body.device(), http));
         return switch (result) {
             case LoginService.Result.Success s -> toToken(s.session());
-            case LoginService.Result.Locked l -> throw new LockedException(ErrorCode.FORBIDDEN, "Account temporarily locked");
+            // A locked account is reported as plain invalid credentials (same 401, same body) so
+            // the lockout state can't be used to confirm an account exists (audit H2). The lockout
+            // is still enforced internally; the holder recovers via the lockout window or reset.
+            case LoginService.Result.Locked l -> throw new UnauthorizedException(ErrorCode.UNAUTHORIZED, "Invalid credentials");
             case LoginService.Result.Invalid i -> throw new UnauthorizedException(ErrorCode.UNAUTHORIZED, "Invalid credentials");
         };
     }

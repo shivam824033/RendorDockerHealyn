@@ -1,16 +1,27 @@
-spring:
-  datasource:
-    url: ${DATABASE_URL}
-    username: ${HEALYN_DB_USER}
-    password: ${HEALYN_DB_PASSWORD}
+# Production hardening overrides (audit §11 item 10 / finding S-2).
+# Activated by HEALYN_PROFILE=prod. Inherits the secure defaults in application.yml and
+# locks them down explicitly so the production posture is auditable in one place.
 
-  data:
-    redis:
-      host: ${HEALYN_REDIS_HOST}
-      port: ${HEALYN_REDIS_PORT}
-      password: ${HEALYN_REDIS_PASSWORD}
-      ssl:
+springdoc:
+  # No interactive API explorer and no machine-readable spec in production.
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
+
+management:
+  server:
+    # Bind Actuator to a separate, internal-only port. The public TLS gateway forwards
+    # ONLY the API port (HEALYN_HTTP_PORT); this management port is reachable solely from
+    # inside the cluster/VPC, so health, info (and any future metrics endpoint) are never
+    # exposed on the public surface. Point platform liveness/readiness probes at this port.
+    port: ${HEALYN_MANAGEMENT_PORT:9090}
+  endpoints:
+    web:
+      exposure:
+        include: health, info
+  endpoint:
+    health:
+      probes:
         enabled: true
-
-server:
-  port: ${PORT:8080}
+      show-details: never

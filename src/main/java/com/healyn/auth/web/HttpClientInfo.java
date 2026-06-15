@@ -1,6 +1,7 @@
 package com.healyn.auth.web;
 
 import com.healyn.auth.service.DeviceMeta;
+import com.healyn.common.web.ClientInfo;
 import jakarta.servlet.http.HttpServletRequest;
 
 final class HttpClientInfo {
@@ -12,21 +13,11 @@ final class HttpClientInfo {
                 req.deviceId(),
                 req.deviceLabel(),
                 req.fcmToken(),
-                clientIp(http),
-                truncate(http.getHeader("User-Agent"), 512));
+                ClientInfo.clientIp(http),
+                ClientInfo.userAgent(http));
     }
 
     static String clientIp(HttpServletRequest http) {
-        String forwarded = http.getHeader("X-Forwarded-For");
-        if (forwarded != null && !forwarded.isBlank()) {
-            int comma = forwarded.indexOf(',');
-            return (comma > 0 ? forwarded.substring(0, comma) : forwarded).trim();
-        }
-        return http.getRemoteAddr();
-    }
-
-    private static String truncate(String s, int max) {
-        if (s == null) return null;
-        return s.length() <= max ? s : s.substring(0, max);
+        return ClientInfo.clientIp(http);
     }
 }

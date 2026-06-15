@@ -6,6 +6,7 @@ import com.healyn.notifications.service.FcmTokenService;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -61,5 +62,41 @@ class FcmTokenServiceTest {
         assertThat(existing.getAccountId()).isEqualTo(secondOwner);
         assertThat(existing.getDeviceId()).isEqualTo("dev-b");
         verify(repo, never()).save(any(FcmToken.class));
+    }
+
+    @Test
+    void register_supersedes_an_older_live_token_for_the_same_device() {
+        UUID account = UUID.randomUUID();
+        when(repo.findByTokenAndDeletedAtIsNull("tok-new")).thenReturn(Optional.empty());
+        FcmToken older = new FcmToken(UUID.randomUUID(), account, "tok-old", "android", "dev-1");
+        when(repo.findByAccountIdAndDeviceIdAndDeletedAtIsNull(account, "dev-1"))
+                .thenReturn(List.of(older));
+
+        service.register(account, "tok-new", "android", "dev-1");
+
+        assertThat(older.getDeletedAt()).as("the rotated-away token is retired").isNotNull();
+    }
+
+    @Test
+    void unregister_retires_every_live_token_for_the_account_and_device() {
+        UUID account = UUID.randomUUID();
+        FcmToken t1 = new FcmToken(UUID.randomUUID(), account, "tok-a", "android", "dev-1");
+        FcmToken t2 = new FcmToken(UUID.randomUUID(), account, "tok-b", "android", "dev-1");
+        when(repo.findByAccountIdAndDeviceIdAndDeletedAtIsNull(account, "dev-1"))
+                .thenReturn(List.of(t1, t2));
+
+        int retired = service.unregister(account, "dev-1");
+
+        assertThat(retired).isEqualTo(2);
+        assertThat(t1.getDeletedAt()).isNotNull();
+        assertThat(t2.getDeletedAt()).isNotNull();
+    }
+
+    @Test
+    void unregister_with_blank_device_id_retires_nothing() {
+        int retired = service.unregister(UUID.randomUUID(), "  ");
+
+        assertThat(retired).isZero();
+        verify(repo, never()).findByAccountIdAndDeviceIdAndDeletedAtIsNull(any(), any());
     }
 }

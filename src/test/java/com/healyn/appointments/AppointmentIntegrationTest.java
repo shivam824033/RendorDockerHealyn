@@ -339,6 +339,64 @@ class AppointmentIntegrationTest {
     }
 
     @Test
+    void physio_reschedule_keeping_the_start_and_shortening_is_allowed() throws Exception {
+        // APPOINTMENT_FLOW §6: the old row leaves the physio-overlap set before the
+        // replacement is flushed, so reusing the appointment's own time (here 09:00,
+        // shortened 30 -> 15 min) is not rejected as a self-conflict.
+        Session physio = seedPhysio();
+        Session a = registerPatient("sky");
+        UUID patientA = primaryPatientId(a);
+        UUID confirmedId = seedConfirmed(patientA, physio.id, accountIdOf(a), 10, 9);
+
+        mvc.perform(post("/appointments/" + confirmedId + "/reschedule")
+                        .header("Authorization", "Bearer " + physio.access)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json.writeValueAsString(Map.of(
+                                "scheduled_at", futureInstantAt(10, 9, 0),
+                                "duration_minutes", 15))))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.status").value("CONFIRMED"))
+                .andExpect(jsonPath("$.duration_minutes").value(15))
+                .andExpect(jsonPath("$.rescheduled_from_id").value(confirmedId.toString()));
+
+        mvc.perform(get("/appointments/" + confirmedId)
+                        .header("Authorization", "Bearer " + physio.access))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("RESCHEDULED"));
+    }
+
+    @Test
+    void physio_reschedule_extending_into_another_appointment_returns_409() throws Exception {
+        // Growing the duration so the new range covers a *different* CONFIRMED appointment
+        // still fails on the EXCLUDE flush (the self-conflict is gone, the real clash remains).
+        Session physio = seedPhysio();
+        Session a = registerPatient("sloane");
+        UUID patientA = primaryPatientId(a);
+        UUID first = seedConfirmed(patientA, physio.id, accountIdOf(a), 10, 9);   // 09:00–09:30
+        UUID second = seedConfirmed(patientA, physio.id, accountIdOf(a), 10, 10); // 10:00–10:30
+
+        // Reschedule the 09:00 visit to 09:00 + 90 min => 09:00–10:30, overlapping the 10:00 one.
+        mvc.perform(post("/appointments/" + first + "/reschedule")
+                        .header("Authorization", "Bearer " + physio.access)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json.writeValueAsString(Map.of(
+                                "scheduled_at", futureInstantAt(10, 9, 0),
+                                "duration_minutes", 90))))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.error.code").value("appointments.slot_unavailable"));
+
+        // The transaction rolled back: the original stays CONFIRMED, the other untouched.
+        mvc.perform(get("/appointments/" + first + "")
+                        .header("Authorization", "Bearer " + physio.access))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("CONFIRMED"));
+        mvc.perform(get("/appointments/" + second + "")
+                        .header("Authorization", "Bearer " + physio.access))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("CONFIRMED"));
+    }
+
+    @Test
     void physio_reschedule_numbers_children_and_links_the_lineage() throws Exception {
         Session physio = seedPhysio();
         Session a = registerPatient("seb");
@@ -1075,6 +1133,7 @@ class AppointmentIntegrationTest {
                 "full_name", tag + " Person",
                 "date_of_birth", "1991-05-20",
                 "sex", "UNDISCLOSED"));
+        body.put("consents", Map.of("terms_accepted", true, "privacy_accepted", true, "health_data_processing_accepted", true));
         body.put("address", Map.of(
                 "line1", "1 Test Street",
                 "city", "Pune",

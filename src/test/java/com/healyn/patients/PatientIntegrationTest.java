@@ -3,7 +3,12 @@ package com.healyn.patients;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.healyn.auth.adapter.OtpSender;
+import com.healyn.auth.domain.Account;
+import com.healyn.auth.domain.AccountRole;
 import com.healyn.auth.domain.OtpChannel;
+import com.healyn.auth.repository.AccountRepository;
+import com.healyn.auth.service.AccessTokenIssuer;
+import com.healyn.common.id.UuidV7;
 import com.redis.testcontainers.RedisContainer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -83,6 +88,8 @@ class PatientIntegrationTest {
     @Autowired MockMvc mvc;
     @Autowired ObjectMapper json;
     @Autowired CapturingOtpSender otpSender;
+    @Autowired AccountRepository accounts;
+    @Autowired AccessTokenIssuer tokenIssuer;
 
     @BeforeEach
     void reset() {
@@ -106,7 +113,8 @@ class PatientIntegrationTest {
                 "full_name", "Bob Jr",
                 "date_of_birth", "2015-04-10",
                 "sex", "MALE",
-                "relationship", "CHILD"));
+                "relationship", "CHILD",
+                "authority_attested", true));
 
         mvc.perform(post("/patients")
                         .header("Authorization", "Bearer " + s.access)
@@ -277,6 +285,81 @@ class PatientIntegrationTest {
                 .andExpect(jsonPath("$.error.code").value("common.validation_failed"));
     }
 
+    @Test
+    void physio_roster_search_by_name_finds_the_patient() throws Exception {
+        // Lowercase: account emails normalise to lowercase, so register()'s OTP lookup
+        // (keyed by the email) only resolves for a lowercase prefix. Search is ILIKE, so
+        // case doesn't matter for the assertion.
+        String unique = "zenph" + UUID.randomUUID().toString().substring(0, 8);
+        register(unique);
+        String physio = seedPhysio();
+
+        mvc.perform(get("/patients").param("q", unique)
+                        .header("Authorization", "Bearer " + physio))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.patients.length()").value(1))
+                .andExpect(jsonPath("$.patients[0].full_name").value(unique + " Person"));
+    }
+
+    @Test
+    void physio_roster_search_by_patient_id_returns_exact_patient() throws Exception {
+        Session s = register("idsearch");
+        // The patient learns its own PAT- number from its list; the physio searches by it.
+        JsonNode mine = json.readTree(mvc.perform(get("/patients")
+                        .header("Authorization", "Bearer " + s.access))
+                .andReturn().getResponse().getContentAsByteArray()).get("patients").get(0);
+        String number = mine.get("patient_number").asText();
+        String physio = seedPhysio();
+
+        mvc.perform(get("/patients").param("q", number)
+                        .header("Authorization", "Bearer " + physio))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.patients.length()").value(1))
+                .andExpect(jsonPath("$.patients[0].patient_number").value(number));
+    }
+
+    @Test
+    void physio_roster_paginates_and_returns_next_cursor() throws Exception {
+        register("pageone");
+        register("pagetwo");
+        String physio = seedPhysio();
+
+        JsonNode first = json.readTree(mvc.perform(get("/patients").param("limit", "1")
+                        .header("Authorization", "Bearer " + physio))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.patients.length()").value(1))
+                .andExpect(jsonPath("$.next_cursor").isNotEmpty())
+                .andReturn().getResponse().getContentAsByteArray());
+        String firstId = first.get("patients").get(0).get("id").asText();
+        String cursor = first.get("next_cursor").asText();
+
+        // The second page starts after the cursor — a different patient (newest-first keyset).
+        mvc.perform(get("/patients").param("limit", "1").param("cursor", cursor)
+                        .header("Authorization", "Bearer " + physio))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.patients.length()").value(1))
+                .andExpect(jsonPath("$.patients[0].id").value(org.hamcrest.Matchers.not(firstId)));
+    }
+
+    @Test
+    void physio_roster_rejects_a_malformed_cursor() throws Exception {
+        String physio = seedPhysio();
+        mvc.perform(get("/patients").param("cursor", "not-a-valid-cursor!!")
+                        .header("Authorization", "Bearer " + physio))
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(jsonPath("$.error.code").value("common.invalid_cursor"));
+    }
+
+    /// Seeds a physiotherapist account directly (there is no physio self-registration) and
+    /// returns its access token. Mirrors the helper in AppointmentIntegrationTest.
+    private String seedPhysio() {
+        Account physio = new Account(
+                UuidV7.generate(), "physio+" + UUID.randomUUID() + "@clinic.example.com", null,
+                "$argon2id$placeholder$noop", new byte[]{0}, AccountRole.ROLE_PHYSIO);
+        accounts.save(physio);
+        return tokenIssuer.issue(physio, UUID.randomUUID()).token();
+    }
+
     private UUID createFamilyMember(Session s, String name, String dob, String sex, String rel) throws Exception {
         Map<String, Object> resp = body(mvc.perform(post("/patients")
                         .header("Authorization", "Bearer " + s.access)
@@ -285,7 +368,8 @@ class PatientIntegrationTest {
                                 "full_name", name,
                                 "date_of_birth", dob,
                                 "sex", sex,
-                                "relationship", rel))))
+                                "relationship", rel,
+                                "authority_attested", true))))
                 .andExpect(status().isCreated())
                 .andReturn());
         return UUID.fromString((String) resp.get("id"));
@@ -310,6 +394,7 @@ class PatientIntegrationTest {
                 "full_name", prefix + " Person",
                 "date_of_birth", "1991-05-20",
                 "sex", "UNDISCLOSED"));
+        body.put("consents", Map.of("terms_accepted", true, "privacy_accepted", true, "health_data_processing_accepted", true));
         body.put("address", Map.of(
                 "line1", "1 Test Street",
                 "city", "Pune",

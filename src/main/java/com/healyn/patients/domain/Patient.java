@@ -88,4 +88,23 @@ public class Patient extends BaseEntity {
     public void softDelete(Instant when) {
         this.deletedAt = when;
     }
+
+    /// Right-to-erasure: strips all identifying and health PII from the patient and
+    /// soft-deletes it. The row is kept (not hard-deleted) so the de-identified clinical
+    /// records that reference it stay intact (Hard Rule #7). The non-PII {@code patientNumber}
+    /// and technical id are retained for referential integrity. Idempotent.
+    public static final String REDACTED_NAME = "Deleted Patient";
+    private static final LocalDate REDACTED_DOB = LocalDate.of(1900, 1, 1);
+
+    public void anonymize(Instant when) {
+        this.fullName = REDACTED_NAME;
+        this.dateOfBirth = REDACTED_DOB;
+        this.sex = PatientSex.UNDISCLOSED;
+        this.phoneE164 = null;
+        this.email = null;
+        this.bloodGroup = null;
+        this.allergies = null;
+        this.notes = null;
+        if (this.deletedAt == null) this.deletedAt = when;
+    }
 }

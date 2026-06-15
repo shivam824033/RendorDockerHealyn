@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.healyn.auth.adapter.OtpSender;
 import com.healyn.auth.domain.OtpChannel;
+import com.healyn.notifications.repository.FcmTokenRepository;
 import com.redis.testcontainers.RedisContainer;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +31,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -78,6 +80,7 @@ class FcmTokenIntegrationTest {
     @Autowired MockMvc mvc;
     @Autowired ObjectMapper json;
     @Autowired CapturingOtpSender otpSender;
+    @Autowired FcmTokenRepository fcmTokens;
 
     @Test
     void register_then_reregister_same_token_is_idempotent() throws Exception {
@@ -111,6 +114,53 @@ class FcmTokenIntegrationTest {
                 .andExpect(status().isBadRequest());
     }
 
+    @Test
+    void unregister_retires_the_device_token_so_it_stops_resolving() throws Exception {
+        String access = (String) registerAccount().get("access_token");
+        String token = "fcm-" + UUID.randomUUID();
+        postToken(access, Map.of("token", token, "platform", "android", "device_id", "dev-1"));
+        assertThat(fcmTokens.findByTokenAndDeletedAtIsNull(token)).isPresent();
+
+        deleteToken(access, Map.of("device_id", "dev-1")).andExpect(status().isNoContent());
+
+        assertThat(fcmTokens.findByTokenAndDeletedAtIsNull(token)).isEmpty();
+    }
+
+    @Test
+    void unregister_leaves_the_accounts_other_devices_registered() throws Exception {
+        String access = (String) registerAccount().get("access_token");
+        String tokenA = "fcm-" + UUID.randomUUID();
+        String tokenB = "fcm-" + UUID.randomUUID();
+        postToken(access, Map.of("token", tokenA, "device_id", "dev-A"));
+        postToken(access, Map.of("token", tokenB, "device_id", "dev-B"));
+
+        deleteToken(access, Map.of("device_id", "dev-A")).andExpect(status().isNoContent());
+
+        assertThat(fcmTokens.findByTokenAndDeletedAtIsNull(tokenA)).isEmpty();
+        assertThat(fcmTokens.findByTokenAndDeletedAtIsNull(tokenB))
+                .as("the account's other device keeps its token").isPresent();
+    }
+
+    @Test
+    void unregister_without_auth_is_401() throws Exception {
+        deleteToken(null, Map.of("device_id", "dev-1")).andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void unregister_with_blank_device_id_is_400() throws Exception {
+        String access = (String) registerAccount().get("access_token");
+        deleteToken(access, Map.of("device_id", "   ")).andExpect(status().isBadRequest());
+    }
+
+    private org.springframework.test.web.servlet.ResultActions deleteToken(String access, Map<String, Object> body)
+            throws Exception {
+        var request = delete("/auth/fcm_tokens")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsBytes(body));
+        if (access != null) request.header("Authorization", "Bearer " + access);
+        return mvc.perform(request);
+    }
+
     private MvcResult postToken(String access, Map<String, Object> body) throws Exception {
         return mvc.perform(post("/auth/fcm_tokens")
                         .header("Authorization", "Bearer " + access)
@@ -140,6 +190,7 @@ class FcmTokenIntegrationTest {
                 "full_name", "Test Person",
                 "date_of_birth", "1990-01-15",
                 "sex", "UNDISCLOSED"));
+        body.put("consents", Map.of("terms_accepted", true, "privacy_accepted", true, "health_data_processing_accepted", true));
         body.put("address", Map.of(
                 "line1", "1 Test Street",
                 "city", "Pune",

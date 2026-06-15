@@ -21,6 +21,8 @@ public class PasswordHasher {
     private final Argon2PasswordEncoder encoder =
             new Argon2PasswordEncoder(SALT_BYTES, HASH_LENGTH, PARALLELISM, MEMORY_KB, ITERATIONS);
     private final byte[] pepper;
+    private final byte[] decoySalt;
+    private final String decoyHash;
 
     public PasswordHasher(AuthProperties.Password props) {
         String configured = props.pepper();
@@ -28,6 +30,13 @@ public class PasswordHasher {
             throw new IllegalStateException("healyn.password.pepper is not configured");
         }
         this.pepper = configured.getBytes(StandardCharsets.UTF_8);
+        // Precomputed decoy so a login for a non-existent account can run the same Argon2 work
+        // as a real one — see matchesDecoy / audit M1.
+        this.decoySalt = new byte[SALT_BYTES];
+        random.nextBytes(decoySalt);
+        byte[] decoy = new byte[HASH_LENGTH];
+        random.nextBytes(decoy);
+        this.decoyHash = encoder.encode(mix(Base64.getEncoder().encodeToString(decoy), decoySalt));
     }
 
     public Hashed hash(String rawPassword) {
@@ -39,6 +48,13 @@ public class PasswordHasher {
 
     public boolean matches(String rawPassword, String passwordHash, byte[] salt) {
         return encoder.matches(mix(rawPassword, salt), passwordHash);
+    }
+
+    /// Runs a full Argon2 verification against a fixed decoy hash and always returns false.
+    /// Called when no account matches the login identifier so the response time matches the
+    /// real "wrong password" path, denying an attacker an account-existence timing oracle (M1).
+    public boolean matchesDecoy(String rawPassword) {
+        return encoder.matches(mix(rawPassword == null ? "" : rawPassword, decoySalt), decoyHash);
     }
 
     private CharSequence mix(String rawPassword, byte[] salt) {

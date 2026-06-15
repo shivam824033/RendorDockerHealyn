@@ -6,5 +6,9 @@ public enum AuditAction {
     UPDATE,
     SOFT_DELETE,
     DOWNLOAD,
-    EXPORT
+    EXPORT,
+    ANONYMIZE,
+    PURGE,
+    CONSENT_GRANT,
+    CONSENT_WITHDRAW
 }

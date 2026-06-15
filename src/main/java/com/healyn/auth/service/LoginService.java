@@ -32,6 +32,9 @@ public class LoginService {
         Instant now = Instant.now();
 
         if (account == null || account.getDeletedAt() != null || account.getStatus() == AccountStatus.DISABLED) {
+            // Burn the same Argon2 cost as the wrong-password path so a missing/disabled account
+            // is not distinguishable by response time (audit M1 — login enumeration oracle).
+            passwordHasher.matchesDecoy(rawPassword);
             return Result.invalid();
         }
 

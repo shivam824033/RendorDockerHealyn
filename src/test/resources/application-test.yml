@@ -19,6 +19,10 @@ logging:
 healyn:
   notifications:
     poller-enabled: false
+  # Rate limiting off by default for the shared-Redis integration suite (one fixed client IP,
+  # many requests). AuthRateLimitIntegrationTest re-enables it with tight limits + distinct IPs.
+  ratelimit:
+    enabled: false
   password:
     pepper: test-pepper-not-for-prod-test-pepper-not-for-prod
   jwt:

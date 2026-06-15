@@ -31,8 +31,8 @@ class FlywayMigrationTest {
 
         // Pins the latest migration version as a tripwire — bump it with every new migration.
         MigrationInfo current = flyway.info().current();
-        assertThat(current.getVersion().getVersion()).isEqualTo("23");
-        assertThat(flyway.info().applied()).hasSizeGreaterThanOrEqualTo(23);
+        assertThat(current.getVersion().getVersion()).isEqualTo("29");
+        assertThat(flyway.info().applied()).hasSizeGreaterThanOrEqualTo(24);
 
         DataSource ds = flyway.getConfiguration().getDataSource();
         try (Connection c = ds.getConnection(); Statement st = c.createStatement()) {
@@ -163,6 +163,73 @@ class FlywayMigrationTest {
             try (ResultSet rs = st.executeQuery(
                     "select 1 from pg_constraint where conname = 'account_addresses_pkey' and contype = 'p'")) {
                 assertThat(rs.next()).as("account_addresses primary key (account_id)").isTrue();
+            }
+            // V24 document library: the file_context enum, the new file_objects columns and indexes.
+            try (ResultSet rs = st.executeQuery(
+                    "select 1 from pg_type where typname = 'file_context'")) {
+                assertThat(rs.next()).as("file_context enum type exists").isTrue();
+            }
+            try (ResultSet rs = st.executeQuery(
+                    "select is_nullable from information_schema.columns "
+                            + "where table_name = 'file_objects' and column_name = 'upload_context'")) {
+                assertThat(rs.next()).as("file_objects.upload_context column exists").isTrue();
+                assertThat(rs.getString(1)).as("upload_context is NOT NULL").isEqualTo("NO");
+            }
+            try (ResultSet rs = st.executeQuery(
+                    "select is_nullable from information_schema.columns "
+                            + "where table_name = 'file_objects' and column_name = 'uploaded_by_role'")) {
+                assertThat(rs.next()).as("file_objects.uploaded_by_role column exists").isTrue();
+                assertThat(rs.getString(1)).as("uploaded_by_role is NOT NULL").isEqualTo("NO");
+            }
+            try (ResultSet rs = st.executeQuery(
+                    "select 1 from information_schema.columns "
+                            + "where table_name = 'file_objects' and column_name = 'appointment_id'")) {
+                assertThat(rs.next()).as("file_objects.appointment_id column exists").isTrue();
+            }
+            try (ResultSet rs = st.executeQuery(
+                    "select 1 from pg_indexes where indexname = 'idx_file_library'")) {
+                assertThat(rs.next()).as("idx_file_library partial index exists").isTrue();
+            }
+            try (ResultSet rs = st.executeQuery(
+                    "select 1 from pg_indexes where indexname = 'idx_file_appointment'")) {
+                assertThat(rs.next()).as("idx_file_appointment partial index exists").isTrue();
+            }
+            // V26: the keyset index backing the physiotherapist's patient roster.
+            try (ResultSet rs = st.executeQuery(
+                    "select 1 from pg_indexes where indexname = 'idx_patients_created_id'")) {
+                assertThat(rs.next()).as("idx_patients_created_id roster index exists").isTrue();
+            }
+            // V27 physio profile: the single-row, account-keyed profile table.
+            try (ResultSet rs = st.executeQuery(
+                    "select 1 from pg_tables where tablename = 'physio_profiles'")) {
+                assertThat(rs.next()).as("physio_profiles table exists").isTrue();
+            }
+            try (ResultSet rs = st.executeQuery(
+                    "select 1 from pg_constraint where conname = 'physio_profiles_pkey' and contype = 'p'")) {
+                assertThat(rs.next()).as("physio_profiles primary key (account_id)").isTrue();
+            }
+            // V28 compliance enum values: PENDING_DELETION on account_status, ANONYMIZE on audit_action.
+            try (ResultSet rs = st.executeQuery(
+                    "select 1 from pg_enum e join pg_type t on t.oid = e.enumtypid "
+                            + "where t.typname = 'account_status' and e.enumlabel = 'PENDING_DELETION'")) {
+                assertThat(rs.next()).as("account_status has PENDING_DELETION").isTrue();
+            }
+            try (ResultSet rs = st.executeQuery(
+                    "select 1 from pg_enum e join pg_type t on t.oid = e.enumtypid "
+                            + "where t.typname = 'audit_action' and e.enumlabel = 'ANONYMIZE'")) {
+                assertThat(rs.next()).as("audit_action has ANONYMIZE").isTrue();
+            }
+            // V29 compliance schema: the three new tables + a seeded current Privacy Policy.
+            for (String table : new String[]{"legal_documents", "consent_records", "account_deletion_requests"}) {
+                try (ResultSet rs = st.executeQuery(
+                        "select 1 from pg_tables where tablename = '" + table + "'")) {
+                    assertThat(rs.next()).as(table + " table exists").isTrue();
+                }
+            }
+            try (ResultSet rs = st.executeQuery(
+                    "select count(*) from legal_documents where is_current and kind = 'PRIVACY_POLICY'")) {
+                assertThat(rs.next()).isTrue();
+                assertThat(rs.getInt(1)).as("one current Privacy Policy seeded").isEqualTo(1);
             }
         }
     }

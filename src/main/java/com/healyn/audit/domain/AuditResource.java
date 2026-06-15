@@ -8,6 +8,8 @@ public final class AuditResource {
     public static final String DISCUSSION_MESSAGE = "discussion_message";
     public static final String TREATMENT_NOTE = "treatment_note";
     public static final String PATIENT = "patient";
+    public static final String ACCOUNT = "account";
+    public static final String CONSENT = "consent";
 
     private AuditResource() {}
 }

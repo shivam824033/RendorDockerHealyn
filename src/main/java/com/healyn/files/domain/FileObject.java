@@ -1,5 +1,6 @@
 package com.healyn.files.domain;
 
+import com.healyn.auth.domain.AccountRole;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -27,10 +28,28 @@ public class FileObject {
     @Column(name = "patient_id", nullable = false, updatable = false)
     private UUID patientId;
 
+    /** The appointment this file was uploaded against, or null for a standalone library document. */
+    @Column(name = "appointment_id", updatable = false)
+    private UUID appointmentId;
+
     @Enumerated(EnumType.STRING)
     @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     @Column(name = "kind", nullable = false, updatable = false, columnDefinition = "file_kind")
     private FileKind kind;
+
+    /** The role of the account that uploaded the file — drives the patient/physio split in the library. */
+    @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    @Column(name = "uploaded_by_role", nullable = false, updatable = false, columnDefinition = "account_role")
+    private AccountRole uploadedByRole;
+
+    @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    @Column(name = "upload_context", nullable = false, updatable = false, columnDefinition = "file_context")
+    private FileContext uploadContext;
+
+    @Column(name = "upload_source", updatable = false)
+    private String uploadSource;
 
     @Column(name = "mime_type", nullable = false, updatable = false)
     private String mimeType;
@@ -67,7 +86,11 @@ public class FileObject {
     public FileObject(UUID id,
                       UUID ownerAccountId,
                       UUID patientId,
+                      UUID appointmentId,
                       FileKind kind,
+                      AccountRole uploadedByRole,
+                      FileContext uploadContext,
+                      String uploadSource,
                       String mimeType,
                       String originalFilename,
                       String storageKey,
@@ -75,7 +98,11 @@ public class FileObject {
         this.id = id;
         this.ownerAccountId = ownerAccountId;
         this.patientId = patientId;
+        this.appointmentId = appointmentId;
         this.kind = kind;
+        this.uploadedByRole = uploadedByRole;
+        this.uploadContext = uploadContext;
+        this.uploadSource = uploadSource;
         this.mimeType = mimeType;
         this.originalFilename = originalFilename;
         this.storageKey = storageKey;
@@ -91,7 +118,11 @@ public class FileObject {
     public UUID getId() { return id; }
     public UUID getOwnerAccountId() { return ownerAccountId; }
     public UUID getPatientId() { return patientId; }
+    public UUID getAppointmentId() { return appointmentId; }
     public FileKind getKind() { return kind; }
+    public AccountRole getUploadedByRole() { return uploadedByRole; }
+    public FileContext getUploadContext() { return uploadContext; }
+    public String getUploadSource() { return uploadSource; }
     public String getMimeType() { return mimeType; }
     public String getOriginalFilename() { return originalFilename; }
     public String getStorageKey() { return storageKey; }

@@ -2,11 +2,14 @@ package com.healyn.notifications.web;
 
 import com.healyn.notifications.service.FcmTokenService;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.UUID;
@@ -32,5 +35,18 @@ public class FcmTokenController {
         UUID accountId = UUID.fromString(jwt.getSubject());
         UUID id = tokens.register(accountId, body.token(), body.platform(), body.deviceId());
         return new FcmTokenDtos.RegisterResponse(id);
+    }
+
+    /**
+     * Logout / device sign-out: retires this device's push token for the caller's account so the
+     * signed-out device stops receiving notifications. Account-scoped, so the account's other
+     * devices keep working. Idempotent — a device with no live token is a no-op.
+     */
+    @DeleteMapping
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void unregister(@AuthenticationPrincipal Jwt jwt,
+                           @Valid @RequestBody FcmTokenDtos.UnregisterRequest body) {
+        UUID accountId = UUID.fromString(jwt.getSubject());
+        tokens.unregister(accountId, body.deviceId());
     }
 }

@@ -3,6 +3,7 @@ package com.healyn.auth.repository;
 import com.healyn.auth.domain.OtpChallenge;
 import com.healyn.auth.domain.OtpPurpose;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -11,6 +12,11 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface OtpChallengeRepository extends JpaRepository<OtpChallenge, UUID> {
+
+    /// Erasure: drop every challenge tied to an account (each row carries the contact target).
+    @Modifying
+    @Query("delete from OtpChallenge o where o.accountId = :accountId")
+    int deleteByAccountId(@Param("accountId") UUID accountId);
 
     @Query("""
         select o from OtpChallenge o

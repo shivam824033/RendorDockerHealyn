@@ -44,6 +44,13 @@ public class AccountAddressService {
         return addresses.findById(accountId);
     }
 
+    /// Erasure: removes the household address for an account. The row holds postal contact
+    /// data and has no clinical value, so it is deleted outright rather than redacted.
+    @Transactional
+    public void deleteForAccount(UUID accountId) {
+        addresses.findById(accountId).ifPresent(addresses::delete);
+    }
+
     /// The household address resolved through a patient's managing account(s) —
     /// the physiotherapist's view of where a patient lives. Empty when no
     /// managing account has set one.

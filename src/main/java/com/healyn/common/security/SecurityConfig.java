@@ -4,6 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.healyn.auth.config.AuthProperties;
 import com.healyn.auth.service.JwtBlacklist;
 import com.healyn.auth.service.JwtKeyProvider;
+import com.healyn.auth.service.RateLimiter;
+import com.healyn.auth.web.AuthRateLimitFilter;
 import com.healyn.common.error.ErrorCode;
 import com.healyn.common.logging.TraceContext;
 import com.healyn.common.web.ApiError;
@@ -11,6 +13,9 @@ import com.healyn.common.web.ApiErrorResponse;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
+import org.springframework.core.env.Profiles;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -32,35 +37,63 @@ import java.util.List;
 @Configuration
 public class SecurityConfig {
 
-    private final ObjectMapper objectMapper;
+    private static final String[] OPENAPI_WHITELIST = {
+            "/v3/api-docs",
+            "/v3/api-docs.yaml",
+            "/v3/api-docs/**",
+            "/swagger-ui",
+            "/swagger-ui/**",
+            "/swagger-ui.html",
+            "/swagger-resources/**",
+            "/webjars/**"
+    };
 
-    public SecurityConfig(ObjectMapper objectMapper) {
+    private final ObjectMapper objectMapper;
+    private final Environment environment;
+
+    public SecurityConfig(ObjectMapper objectMapper, Environment environment) {
         this.objectMapper = objectMapper;
+        this.environment = environment;
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http,
+                                                   RateLimiter rateLimiter,
+                                                   AuthProperties.RateLimit rateLimitProps) throws Exception {
+        AuthRateLimitFilter rateLimitFilter = new AuthRateLimitFilter(rateLimiter, rateLimitProps, objectMapper);
+        // OpenAPI/Swagger is dev-only. In prod springdoc is disabled (application-prod.yml)
+        // AND the paths are not anonymously whitelisted, so the spec/UI can never be reached
+        // by an unauthenticated client (audit S-2).
+        boolean openApiExposed = !environment.acceptsProfiles(Profiles.of("prod"));
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(AbstractHttpConfigurer::disable)
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(reg -> reg
-                        .requestMatchers("/actuator/health/**", "/actuator/info").permitAll()
-                        .requestMatchers(
-                                "/v3/api-docs",
-                                "/v3/api-docs.yaml",
-                                "/v3/api-docs/**",
-                                "/swagger-ui",
-                                "/swagger-ui/**",
-                                "/swagger-ui.html",
-                                "/swagger-resources/**",
-                                "/webjars/**").permitAll()
-                        .requestMatchers(
-                                "/auth/register/**",
-                                "/auth/login",
-                                "/auth/refresh",
-                                "/auth/password-reset/**").permitAll()
-                        .anyRequest().authenticated())
+                // Security headers (audit M3). HSTS pins TLS for a year incl. subdomains; the API
+                // serves only JSON to a native client, so deny framing and lock down refer/CTO.
+                // Spring's defaults already add X-Content-Type-Options and Cache-Control no-store.
+                .headers(h -> h
+                        .httpStrictTransportSecurity(hsts -> hsts.includeSubDomains(true).maxAgeInSeconds(31_536_000))
+                        .frameOptions(org.springframework.security.config.annotation.web.configurers.HeadersConfigurer.FrameOptionsConfig::deny)
+                        .referrerPolicy(rp -> rp.policy(
+                                org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter.ReferrerPolicy.NO_REFERRER)))
+                .addFilterBefore(rateLimitFilter,
+                        org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.class)
+                .authorizeHttpRequests(reg -> {
+                    reg.requestMatchers("/actuator/health/**", "/actuator/info").permitAll();
+                    if (openApiExposed) {
+                        reg.requestMatchers(OPENAPI_WHITELIST).permitAll();
+                    }
+                    reg.requestMatchers(
+                                    "/auth/register/**",
+                                    "/auth/login",
+                                    "/auth/refresh",
+                                    "/auth/password-reset/**").permitAll()
+                            // Legal documents (Privacy Policy / Terms) must be readable before
+                            // signup and during app-store review — read-only, no PHI.
+                            .requestMatchers(HttpMethod.GET, "/legal/**").permitAll()
+                            .anyRequest().authenticated();
+                })
                 .oauth2ResourceServer(rs -> rs.jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthConverter())))
                 .exceptionHandling(eh -> eh
                         .authenticationEntryPoint((req, res, ex) -> writeError(res, HttpServletResponse.SC_UNAUTHORIZED, ErrorCode.UNAUTHORIZED, "Authentication required."))
